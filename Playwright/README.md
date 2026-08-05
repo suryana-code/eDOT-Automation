@@ -1,6 +1,8 @@
 # eDOT Automation - Playwright + Pytest
 
-Suite ini adalah automasi pengujian end-to-end sederhana untuk aplikasi eDOT dengan menggunakan Playwright dan Pytest.
+Suite ini merupakan implementasi automation testing untuk aplikasi web eSuite menggunakan Playwright dan Pytest sebagai bagian dari Take Home Test QA Automation Engineer eDOT.
+
+Framework dibangun menggunakan pendekatan Page Object Model (POM), session authentication (`storage_state`), serta mendukung pelaporan menggunakan Allure Report.
 
 ## Tujuan Project
 
@@ -147,10 +149,19 @@ make clean
 ## Reporting
 
 - Report Allure dihasilkan ke folder `allure-results/`.
-- Bila `allure` tersedia, perintah `make allure` akan membuka report di browser.
+- Bila `allure` tersedia, perintah `make allure` atau `make allure-headed` akan membuka report di browser.
+- Folder `allure-results/` dan `allure-report/` tidak disimpan di repository karena merupakan artefak hasil eksekusi.
+- Evidence hasil eksekusi (Allure Report) dapat dilihat pada folder:
+
+```
+../docs/evidence/
+```
+
+yang berisi screenshot hasil execution sebagai referensi reviewer.
 
 ## Catatan Tambahan
 
-- Folder `auth/storage_state.json`, `screenshots/`, dan report Allure sudah di-ignore di `.gitignore`.
-- Jika ada perubahan UI locator, update page object di `pages/company_page.py`.
-- Ini adalah dokumentasi untuk project lokal, tanpa implementasi CI/CD.
+- Folder `auth/storage_state.json`, `screenshots/`, `allure-results/`, dan `allure-report/` diabaikan melalui `.gitignore` karena merupakan file runtime.
+- Evidence hasil execution disimpan pada folder `docs/evidence/`.
+- Jika terdapat perubahan UI atau locator, cukup lakukan pembaruan pada Page Object tanpa mengubah test case.
+- Repository ini difokuskan pada implementasi automation sesuai requirement Take Home Test QA Automation Engineer eDOT.
