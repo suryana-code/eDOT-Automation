@@ -1,0 +1,4 @@
+appId: id.edot.ework
+---
+- launchApp:
+    clearState: true

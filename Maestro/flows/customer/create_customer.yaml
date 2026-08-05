@@ -1,0 +1,33 @@
+appId: ${APP_ID}
+---
+- extendedWaitUntil:
+    visible: "Ranking currently unavailable"
+    timeout: 15000
+
+- tapOn: "Customer"
+- extendedWaitUntil:
+    visible: "Add Customer"
+    timeout: 15000
+
+- tapOn: "Add Customer"
+- extendedWaitUntil:
+    visible: "Customer Name"
+    timeout: 10000
+
+- tapOn: "Customer Name"
+- inputText: "${CUSTOMER_NAME}"
+
+- tapOn: "Phone"
+- inputText: "${CUSTOMER_PHONE}"
+
+- tapOn: "Address"
+- inputText: "${CUSTOMER_ADDRESS}"
+
+- hideKeyboard
+- tapOn: "Save"
+
+- extendedWaitUntil:
+    visible: "${CUSTOMER_NAME}"
+    timeout: 15000
+
+- assertVisible: "${CUSTOMER_NAME}"

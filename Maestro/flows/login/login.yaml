@@ -1,0 +1,23 @@
+appId: ${APP_ID}
+---
+- extendedWaitUntil:
+    visible: "Ex: P104"
+    timeout: 10000
+
+- tapOn: "Ex: P104"
+- inputText: "${COMPANY_ID}"
+
+- tapOn: "Ex: sfa-131600"
+- inputText: "${USER_NAME}"
+
+- tapOn: "Enter password"
+- inputText: "${PASSWORD}"
+
+- hideKeyboard
+- tapOn: "Sign In"
+
+- extendedWaitUntil:
+    visible: "Ranking currently unavailable"
+    timeout: 10000
+
+- assertVisible: "Ranking currently unavailable"

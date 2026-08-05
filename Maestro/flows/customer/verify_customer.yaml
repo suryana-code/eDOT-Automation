@@ -1,0 +1,11 @@
+appId: ${APP_ID}
+---
+- extendedWaitUntil:
+    visible: "${CUSTOMER_NAME}"
+    timeout: 15000
+
+- assertVisible: "${CUSTOMER_NAME}"
+
+- assertVisible: "${CUSTOMER_PHONE}"
+
+- assertVisible: "${CUSTOMER_ADDRESS}"
