@@ -1,33 +1,91 @@
-appId: ${APP_ID}
+appId: id.edot.ework
 ---
-- extendedWaitUntil:
-    visible: "Ranking currently unavailable"
-    timeout: 15000
+- launchApp
 
-- tapOn: "Customer"
-- extendedWaitUntil:
-    visible: "Add Customer"
-    timeout: 15000
+- assertVisible: "New Customer"
 
-- tapOn: "Add Customer"
+- tapOn: "New Customer"
+
 - extendedWaitUntil:
-    visible: "Customer Name"
+    visible: "New Customer Registration"
     timeout: 10000
 
-- tapOn: "Customer Name"
-- inputText: "${CUSTOMER_NAME}"
+- tapOn: "New Customer Registration"
 
-- tapOn: "Phone"
-- inputText: "${CUSTOMER_PHONE}"
+- tapOn:
+    id: noo_registration_input_outlet_name
 
-- tapOn: "Address"
-- inputText: "${CUSTOMER_ADDRESS}"
+- inputText: ${OUTLET_NAME}
+
+- tapOn:
+    id: noo_registration_input_phone
+
+- inputText: ${PHONE}
 
 - hideKeyboard
-- tapOn: "Save"
 
-- extendedWaitUntil:
-    visible: "${CUSTOMER_NAME}"
-    timeout: 15000
+- tapOn:
+    id: noo_registration_input_email
 
-- assertVisible: "${CUSTOMER_NAME}"
+- inputText: ${EMAIL}
+
+- tapOn:
+    id: noo_registration_input_contact_person
+
+- inputText: ${CONTACT_PERSON}
+
+- tapOn:
+    id: noo_registration_input_channel
+
+- tapOn: ${CHANNEL}
+
+- tapOn:
+    id: noo_registration_input_outlet_type
+
+- tapOn: Search
+
+- inputText: ${OUTLET_TYPE}
+
+- tapOn:
+    text: ${OUTLET_TYPE}
+    index: 1
+
+- tapOn:
+    id: noo_registration_input_address_type
+
+- tapOn: ${ADDRESS_TYPE}
+
+- tapOn:
+    id: noo_registration_input_address
+
+- inputText: ${ADDRESS}
+
+- tapOn: Choose Province
+
+- tapOn: ${PROVINCE}
+
+- tapOn: Choose City
+
+- tapOn: ${CITY}
+
+- tapOn: Choose District
+
+- tapOn: ${DISTRICT}
+
+- tapOn: Choose Sub district
+
+- tapOn: ${SUBDISTRICT}
+
+- tapOn: Input KTP
+
+- inputText: ${KTP}
+
+- tapOn:
+    id: "signature_view"
+- swipe:
+    start: 20%,50%
+    end: 80%,50%
+
+- swipe:
+    start: 30%,30%
+    end: 70%,70%

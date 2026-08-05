@@ -1,4 +1,4 @@
-appId: ${APP_ID}
+appId: id.edot.ework
 ---
 - extendedWaitUntil:
     visible: "Ex: P104"
