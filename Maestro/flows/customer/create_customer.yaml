@@ -1,7 +1,30 @@
 appId: id.edot.ework
----
-- launchApp
 
+env:
+  COMPANY_ID: "5049209"
+  USER_NAME: "salesmanqaauto"
+  PASSWORD: "it.QA2025"
+
+  OUTLET_NAME: "QA Outlet"
+  PHONE: "81234567890"
+  EMAIL: "qa@test.com"
+  CONTACT_PERSON: "QA Automation"
+
+  CHANNEL: "Modern Trade (MT)"
+  OUTLET_TYPE: "Grosir"
+
+  ADDRESS_TYPE: "Delivery Address"
+
+  ADDRESS: "Jl. Test Automation"
+
+  PROVINCE: "RIAU"
+  CITY: "KAB KAMPAR"
+  DISTRICT: "BANGKINANG KOTA"
+  SUBDISTRICT: "KUMANTAN"
+
+  KTP: "3201234567890001"
+
+---
 - assertVisible: "New Customer"
 
 - tapOn: "New Customer"
@@ -29,10 +52,14 @@ appId: id.edot.ework
 
 - inputText: ${EMAIL}
 
+- hideKeyboard
+
 - tapOn:
     id: noo_registration_input_contact_person
 
 - inputText: ${CONTACT_PERSON}
+
+- hideKeyboard
 
 - tapOn:
     id: noo_registration_input_channel

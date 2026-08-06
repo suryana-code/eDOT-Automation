@@ -5,10 +5,6 @@ env:
   USER_NAME: "salesmanqaauto"
   PASSWORD: "it.QA2025"
 
-  CUSTOMER_NAME: "QA Customer"
-  CUSTOMER_PHONE: "081234567890"
-  CUSTOMER_ADDRESS: "Jl. Test Automation"
-
 ---
 - launchApp:
     clearState: false

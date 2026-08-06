@@ -44,9 +44,22 @@ cd /Users/suryana/Git/eDOT-Automation/Maestro
 pytest -q pytest/test_mobile.py
 ```
 
+### Generate Allure report
+
+```bash
+cd /Users/suryana/Git/eDOT-Automation/Maestro
+pytest
+allure serve allure-results
+```
+
+If you do not have `allure` installed, install it first using your package manager or follow the official Allure installation guide.
+
 ### Notes
 
 - Credentials are not hardcoded in YAML flows.
 - Login is extracted to a shared flow under `flows/login/login.yaml`.
-- The wrapper attaches Maestro stdout/stderr to Allure.
+- The test wrapper now attaches Maestro stdout/stderr and input metadata to Allure.
+- This project currently does not implement centralized DDT (data-driven testing) for Maestro.
+  Data is generated and stored per current file-based fixtures in `pytest/conftest.py`.
+- Existing Maestro flow data remains file-driven in the current repo structure.
 - Use Maestro `record` to capture video if needed.
