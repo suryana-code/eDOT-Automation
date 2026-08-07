@@ -18,27 +18,11 @@ jobs:
   playwright:
     runs-on: ubuntu-latest
     
-    deploy:
-      needs: playwright
-      runs-on: ubuntu-latest
-      environment:
-        name: github-pages
-        url: ${{ steps.deployment.outputs.page_url }}
-        
-      permissions:
-        pages: write
-        id-token: write
-        
-      steps:
-        - name: Deploy to Github Pages
-          id: deployment
-          uses: actions/deploy-pages@v4
-    
     env:
       BASE_URL: ${{ secrets.BASE_URL}}
       EMAIL: ${{ secrets.EMAIL}}
       PASSWORD: ${{ secrets.PASSWORD}}
-    
+      
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v4
@@ -86,3 +70,21 @@ jobs:
       with:
         name: allure-report
         path: Playwright/allure-report
+
+    
+deploy:
+  needs: playwright
+  runs-on: ubuntu-latest
+  
+  permissions:
+    pages: write
+    id-token: write
+    
+  environment:
+    name: github-pages
+    url: ${{ steps.deployment.outputs.page_url }}
+    
+  steps:
+  - name: Deploy to Github Pages
+    id: deployment
+    uses: actions/deploy-page@v4
