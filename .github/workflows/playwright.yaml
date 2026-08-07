@@ -9,6 +9,11 @@ jobs:
   playwright:
     runs-on: ubuntu-latest
     
+    env:
+      BASE_URL: ${{ secrets.BASE_URL}}
+      EMAIL: ${{ secrets.EMAIL}}
+      PASSWORD: ${{ secrets.PASSWORD}}
+    
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v4
@@ -27,3 +32,19 @@ jobs:
     - name: Install Playwright Browsers
       working-directory: Playwright
       run: playwright install
+    
+    - name: Run Playwright Automation
+      working-directory: Playwright
+      run: make allure-ci
+    
+    - name: Upload Allure Results
+      uses: actions/upload-artifact@v4
+      with:
+        name: allure-results
+        path: Playwright/allure-results
+
+    - name: Upload Allure Report
+      uses: actions/upload-artifact@v4
+      with:
+        name: allure-report
+        path: Playwright/allure-report
