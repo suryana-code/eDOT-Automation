@@ -1,13 +1,38 @@
 name: Playwright Automation
 
+permissions:
+  contents: read
+  pages: write
+  id-token:write
+
 on:
   push:
     branches:
       - main
 
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
 jobs:
   playwright:
     runs-on: ubuntu-latest
+    
+    deploy:
+      needs: playwright
+      runs-on: ubuntu-latest
+      environment:
+        name: github-pages
+        url: ${{ steps.deployment.outputs.page_url }}
+        
+      permissions:
+        pages: write
+        id-token: write
+        
+      steps:
+        - name: Deploy to Github Pages
+          id: deployment
+          uses: actions/deploy-pages@v4
     
     env:
       BASE_URL: ${{ secrets.BASE_URL}}
@@ -17,6 +42,9 @@ jobs:
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v4
+    
+    - name: Setup Github Pages
+      uses: actions/configure-pages@v5
     
     - name: Setup Python
       uses: actions/setup-python@v5
@@ -41,6 +69,11 @@ jobs:
     - name: Run Playwright Automation
       working-directory: Playwright
       run: make allure-ci
+    
+    - name: Upload Github Pages Artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: Playwright/allure-report
     
     - name: Upload Allure Results
       uses: actions/upload-artifact@v4
