@@ -157,6 +157,26 @@ make clean
 ../docs/evidence/
 ```
 
+## CI/CD
+
+Project ini menggunakan GitHub Actions untuk menjalankan automation secara otomatis setiap kali terdapat push ke branch `main`.
+
+Workflow akan:
+
+1. Install seluruh dependency
+2. Menjalankan Playwright automation
+3. Generate Allure Report
+4. Upload Allure Results sebagai artifact
+5. Publish Allure Report ke GitHub Pages
+
+### Live Report
+
+https://suryana-code.github.io/eDOT-Automation/
+
+### GitHub Actions
+
+https://github.com/suryana-code/eDOT-Automation/actions
+
 yang berisi screenshot hasil execution sebagai referensi reviewer.
 
 ## Catatan Tambahan

@@ -35,7 +35,25 @@ Dokumentasi lengkap dapat dilihat pada:
 
 > `Playwright/README.md`
 
----
+### 🚀CI/CD & Automation Report
+
+Project Playwright telah diintegrasikan dengan GitHub Actions sehingga automation akan berjalan secara otomatis setiap kali terdapat perubahan pada branch main.
+
+Workflow yang dijalankan meliputi:
+
+Install seluruh dependency
+Menjalankan Playwright automation secara headless
+Generate Allure Report
+Upload Allure Results sebagai workflow artifact
+Publish Allure Report ke GitHub Pages
+
+#### Live Report
+
+🌐 https://suryana-code.github.io/eDOT-Automation/
+
+#### GitHub Actions
+
+## ⚙️ https://github.com/suryana-code/eDOT-Automation/actions
 
 ## 📌 Maestro
 
@@ -71,4 +89,4 @@ Repository ini dibuat sebagai implementasi dari Take Home Test QA Automation Eng
 
 **Muhamad Suryana**
 
-QA Automation Engineer
+QA Automation Engineer [www.msuryana.site](www.msuryana.site)
