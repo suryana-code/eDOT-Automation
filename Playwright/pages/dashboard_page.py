@@ -6,7 +6,7 @@ class DashboardPage(BasePage):
     def __init__(self, page):
         super().__init__(page)
 
-        self.lbl_welcome = page.get_by_text("Welcome Back...s.,")
+        self.lbl_welcome = page.get_by_text("Welcome Back,")
         self.lnk_companies = page.get_by_role("link", name="Companies")
         
 
