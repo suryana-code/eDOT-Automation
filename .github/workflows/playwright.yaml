@@ -31,16 +31,12 @@ jobs:
         
     - name: Install Playwright Browsers
       working-directory: Playwright
-      run: playwright install
+      run: |
+        playwright install --with-deps
       
     - name: Install Allure CLI
       run: |
-        sudo apt-get update
-        sudo apt-get install -y default-jre
-        wget https://github.com/allure-framework/allure2/releases/latest/download/allure-2.34.1.tgz
-        tar -zxvf allure-2.34.1.tgz
-        sudo mv allure-2.34.1 /opt/allure
-        sudo ln -s /opt/allure/bin/allure /usr/bin/allure
+        sudo npm install -g allure-commandline --save-dev
     
     - name: Run Playwright Automation
       working-directory: Playwright
