@@ -3,12 +3,13 @@ name: Playwright Automation
 permissions:
   contents: read
   pages: write
-  id-token:write
+  id-token: write
 
 on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 concurrency:
   group: pages
@@ -17,74 +18,73 @@ concurrency:
 jobs:
   playwright:
     runs-on: ubuntu-latest
-    
+
     env:
-      BASE_URL: ${{ secrets.BASE_URL}}
-      EMAIL: ${{ secrets.EMAIL}}
-      PASSWORD: ${{ secrets.PASSWORD}}
-      
+      BASE_URL: ${{ secrets.BASE_URL }}
+      EMAIL: ${{ secrets.EMAIL }}
+      PASSWORD: ${{ secrets.PASSWORD }}
+
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v4
-    
-    - name: Setup Github Pages
-      uses: actions/configure-pages@v5
-    
-    - name: Setup Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.9"
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-    - name: Install Dependencies
-      working-directory: Playwright
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        
-    - name: Install Playwright Browsers
-      working-directory: Playwright
-      run: |
-        playwright install --with-deps
-      
-    - name: Install Allure CLI
-      run: |
-        sudo npm install -g allure-commandline --save-dev
-    
-    - name: Run Playwright Automation
-      working-directory: Playwright
-      run: make allure-ci
-    
-    - name: Upload Github Pages Artifact
-      uses: actions/upload-pages-artifact@v3
-      with:
-        path: Playwright/allure-report
-    
-    - name: Upload Allure Results
-      uses: actions/upload-artifact@v4
-      with:
-        name: allure-results
-        path: Playwright/allure-results
+      - name: Setup GitHub Pages
+        uses: actions/configure-pages@v5
 
-    - name: Upload Allure Report
-      uses: actions/upload-artifact@v4
-      with:
-        name: allure-report
-        path: Playwright/allure-report
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"
 
-    
-deploy:
-  needs: playwright
-  runs-on: ubuntu-latest
-  
-  permissions:
-    pages: write
-    id-token: write
-    
-  environment:
-    name: github-pages
-    url: ${{ steps.deployment.outputs.page_url }}
-    
-  steps:
-  - name: Deploy to Github Pages
-    id: deployment
-    uses: actions/deploy-page@v4
+      - name: Install Dependencies
+        working-directory: Playwright
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install Playwright Browsers
+        working-directory: Playwright
+        run: |
+          playwright install --with-deps
+
+      - name: Install Allure CLI
+        run: |
+          sudo npm install -g allure-commandline --save-dev
+
+      - name: Run Playwright Automation
+        working-directory: Playwright
+        run: make allure-ci
+
+      - name: Upload GitHub Pages Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: Playwright/allure-report
+
+      - name: Upload Allure Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results
+          path: Playwright/allure-results
+
+      - name: Upload Allure Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report
+          path: Playwright/allure-report
+
+  deploy:
+    needs: playwright
+    runs-on: ubuntu-latest
+
+    permissions:
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
