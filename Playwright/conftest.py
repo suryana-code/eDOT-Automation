@@ -24,6 +24,8 @@ def storage_state(browser, config):
 
     storage = Path(config["storage_state"])
 
+    storage.parent.mkdir(parents=True, exist_ok=True)
+
     if storage.exists():
         return config["storage_state"]
 
