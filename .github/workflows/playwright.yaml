@@ -17,3 +17,13 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: "3.9"
+
+    - name: Install Dependencies
+      working-directory: Playwright
+      run: |
+        python -m pip install --upgrate pip
+        pip install -r requirements.txt
+        
+    - name: Install Playwright Browsers
+      working-directory: Playwright
+      run: playwright install
