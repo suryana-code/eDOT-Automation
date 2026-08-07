@@ -1,0 +1,6 @@
+name: Playwright Automation
+
+on:
+  push:
+    branches:
+      - main
