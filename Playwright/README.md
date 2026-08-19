@@ -40,6 +40,7 @@ Bukan fokus project ini:
   - `test_company.py`
 - `utils/` - helper dan generator data
   - `data_generator.py`
+  - `ai_helper.py` - AI runtime generator, schema validation, retry, dan offline fallback
   - `config.py`
 - `requirements.txt` - daftar dependency Python
 - `pytest.ini` - konfigurasi pytest
@@ -80,6 +81,10 @@ playwright install
 BASE_URL=https://your-edot-app-url
 EMAIL=user@example.com
 PASSWORD=yourpassword
+EDOT_AI_API_KEY=optional-api-key
+EDOT_AI_MODEL=gpt-4.1-mini
+EDOT_TEST_DATA_SEED=20260819
+EDOT_TEST_RUN_ID=optional-repeatable-run-id
 ```
 
 ## Menjalankan Test
@@ -121,6 +126,8 @@ make clean
 - `authenticated_page` membuka browser dengan storage state dan membuka `base_url`.
 - Jika test gagal, screenshot otomatis disimpan ke folder `screenshots/` dan dilampirkan ke Allure.
 - `company_page.py` menggunakan Page Object Model untuk memisahkan locator dan aksi halaman.
+- `data_generator.py` menggunakan AI pada runtime bila `EDOT_AI_API_KEY` tersedia. Output divalidasi schema; bila key tidak tersedia, provider gagal, atau output invalid setelah dua percobaan, generator memakai fallback Faker deterministik berdasarkan `EDOT_TEST_DATA_SEED`; `EDOT_TEST_RUN_ID` dapat diset untuk membuat ulang data yang sama. Bila tidak diset, run identifier dibuat unik agar company dari run sebelumnya tidak tertarget. Data yang dipakai test dilampirkan ke Allure sebagai `Actual Company Test Data`.
+- `CustomerData` di `utils/data_generator.py` menyediakan contract AI/fallback tervalidasi (name, contact, address, phone) untuk integrasi Maestro pada tahap berikutnya; suite Maestro belum diubah dalam scope ini.
 
 ## Test Case Utama
 
