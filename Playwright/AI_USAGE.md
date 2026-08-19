@@ -24,6 +24,76 @@ Structured JSON diminta menggunakan strict JSON Schema yang berasal dari model P
 
 Respons divalidasi kembali secara lokal menggunakan `model_validate`. Field tambahan dilarang. JSON invalid, provider error, output text yang tidak tersedia, dan schema-validation failure diperlakukan sebagai percobaan gagal dan tidak diteruskan ke test.
 
+## Exact Prompt yang Digunakan
+
+Kedua implementasi mengirim satu string melalui field request `input`. Tidak ada system prompt atau field `instructions` terpisah pada implementation saat ini. Structured-output JSON Schema dikirim melalui field `text.format.schema`, bukan sebagai bagian dari text prompt di bawah.
+
+### AI Test Data Generation
+
+#### Company test data
+
+Template `input` berikut dikembalikan oleh `AIDataGenerator._company_prompt(run_id)`:
+
+```text
+Return only JSON that matches the supplied schema.
+Generate coherent, realistic Indonesian business test data for an eSuite company.
+Use a legal Indonesian-style company name of at most 30 characters containing exactly this run identifier: QA-{run_id}.
+Use an email at example.test and an Indonesian mobile phone starting with 628.
+The target application only accepts this verified location cascade: Indonesia, JAWA BARAT,
+KOTA BANDUNG, BUAHBATU, JATISARI, postal code 40286. Set industry to Technology,
+company_type to Marketplace, language to Indonesia, and branch_name to Headquarter.
+The street address must be a realistic single-line Bandung address. Do not add commentary.
+```
+
+`{run_id}` diisi saat runtime dari `EDOT_TEST_RUN_ID`; jika environment variable tersebut tidak tersedia, nilainya adalah delapan karakter unik berbasis UUID yang dibuat oleh `AIDataGenerator`.
+
+#### Customer test data
+
+Template `input` berikut dikembalikan oleh `AIDataGenerator._customer_prompt(run_id)`:
+
+```text
+Return only JSON that matches the supplied schema.
+Generate realistic Indonesian customer data for future mobile test use: name, contact,
+street address, and mobile phone starting with 628. Include QA-{run_id} in the name.
+Do not add commentary.
+```
+
+`{run_id}` menggunakan sumber runtime yang sama. Customer prompt telah diimplementasikan dalam generator, tetapi data customer belum digunakan oleh Playwright suite saat ini.
+
+### AI Failure Triage
+
+Template `input` berikut dikembalikan oleh `_triage_prompt(failed_test)`:
+
+```text
+You are a QA failure-triage assistant. This is advisory-only human review.
+You must not propose changes to assertions, expected values, test code, test execution,
+bug trackers, or Allure results. Do not state that a test passed.
+
+Classify the existing failure as exactly one of: Script/Environment Defect,
+Product Bug, Flaky. Analyse evidence in this exact order and return five concise
+evidence_sequence entries with these labels: (1) Exception/timeout/assertion,
+(2) Locator correctness and uniqueness, (3) Previous steps and preconditions,
+(4) Expected-value correctness, (5) Reproducibility/intermittency.
+If evidence is missing, explicitly say so rather than inventing it.
+
+Allure evidence follows:
+```
+
+Setelah text di atas, implementation menambahkan `json.dumps(evidence, ensure_ascii=False)` ke string `input`. Object `evidence` diisi saat runtime dari Allure result dengan field berikut:
+
+```text
+{
+  "test_name": failed_test.name,
+  "status": failed_test.status,
+  "exception_or_assertion": failed_test.error,
+  "trace": failed_test.trace[:MAX_ATTACHMENT_CHARS],
+  "previous_steps": failed_test.steps,
+  "attachments": failed_test.attachments
+}
+```
+
+`MAX_ATTACHMENT_CHARS` bernilai `4_000`. Isi attachment text/JSON telah dibatasi sebelum menjadi bagian dari `failed_test.attachments`; attachment biner digantikan dengan keterangan bahwa isinya tidak dimasukkan ke AI prompt.
+
 ### Retry dan deterministic fallback
 
 Generator melakukan maksimal dua percobaan AI. Jika API key tidak tersedia, request AI tidak dibuat dan fallback digunakan langsung. Jika provider gagal atau output tetap invalid setelah dua percobaan, generator menggunakan fallback Faker (`id_ID`).
@@ -87,7 +157,7 @@ Kedua fitur AI sengaja dibatasi:
 
 - AI hanya menyediakan test data atau teks triage advisory.
 - AI tidak mengubah test code, Page Object, assertion, expected value, atau source file.
-- AI tidak dapat skip, xfail, retry, atau menandai Playwright test sebagai passed.
+- AI tidak dapat skip, xfail, memicu retry terhadap test Playwright, atau menandai Playwright test sebagai passed.
 - Playwright dan pytest tetap menjadi sumber kebenaran untuk PASS/FAIL.
 - Triage script tidak menjalankan pytest, mengubah Allure result, membuat bug, atau menutup bug.
 - Ketika AI tidak tersedia, test tetap berjalan dengan fallback tervalidasi dan triage melaporkan advisory tidak tersedia tanpa menyembunyikan failure.
@@ -133,12 +203,12 @@ make triage
 
 ## 6. Perilaku Fallback
 
-| Kondisi | Perilaku test data | Perilaku triage |
-| --- | --- | --- |
-| API key tidak tersedia | Langsung menggunakan fallback Faker tervalidasi; tidak ada request AI. | Membuat report tanpa verdict buatan dan meminta human triage. |
-| Request AI provider gagal | Mencoba maksimal dua kali, lalu menggunakan fallback Faker tervalidasi. | Mencoba maksimal dua kali, lalu menulis AI-unavailable advisory. |
-| Output AI invalid | Menolak output melalui validasi Pydantic lokal; mencoba kembali, lalu fallback. | Menolak output melalui validasi `TriageAdvice`; mencoba kembali, lalu menulis AI-unavailable advisory. |
-| Allure result tidak tersedia atau tidak berisi failure | Tidak berlaku. | Membuat report valid yang menyatakan tidak ada result failed/broken. |
+| Kondisi                                                | Perilaku test data                                                              | Perilaku triage                                                                                        |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| API key tidak tersedia                                 | Langsung menggunakan fallback Faker tervalidasi; tidak ada request AI.          | Membuat report tanpa verdict buatan dan meminta human triage.                                          |
+| Request AI provider gagal                              | Mencoba maksimal dua kali, lalu menggunakan fallback Faker tervalidasi.         | Mencoba maksimal dua kali, lalu menulis AI-unavailable advisory.                                       |
+| Output AI invalid                                      | Menolak output melalui validasi Pydantic lokal; mencoba kembali, lalu fallback. | Menolak output melalui validasi `TriageAdvice`; mencoba kembali, lalu menulis AI-unavailable advisory. |
+| Allure result tidak tersedia atau tidak berisi failure | Tidak berlaku.                                                                  | Membuat report valid yang menyatakan tidak ada result failed/broken.                                   |
 
 ## 7. Keterbatasan
 
