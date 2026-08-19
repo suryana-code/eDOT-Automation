@@ -139,7 +139,8 @@ make clean
 - `conftest.py` memuat env dan menyediakan fixture `config`, `storage_state`, serta `authenticated_page`.
 - `storage_state` menyimpan session login Playwright di `auth/storage_state.json` agar login tidak dilakukan berulang.
 - `authenticated_page` membuka browser dengan storage state dan membuka `base_url`.
-- Jika test gagal, screenshot otomatis disimpan ke folder `screenshots/` dan dilampirkan ke Allure.
+- Jika test gagal pada execution (`call`) dan menggunakan fixture `authenticated_page`, `pytest_runtest_makereport` menyimpan full-page screenshot ke `screenshots/<nama_test>.png` dan melampirkannya ke Allure.
+- Jika login gagal saat fixture `storage_state` dibuat, screenshot disimpan ke `screenshots/storage_state_login_failure.png` dan dilampirkan ke Allure sebagai `Login Setup Failure Screenshot`. Karena failure terjadi pada fixture setup sebelum test body berjalan, attachment dapat ditemukan pada Allure melalui `Test → Execution → Set up → Login Setup Failure Screenshot`.
 - `company_page.py` menggunakan Page Object Model untuk memisahkan locator dan aksi halaman.
 - `data_generator.py` menggunakan AI pada runtime bila `EDOT_AI_API_KEY` tersedia. Output divalidasi schema; bila key tidak tersedia, provider gagal, atau output invalid setelah dua percobaan, generator memakai fallback Faker deterministik berdasarkan `EDOT_TEST_DATA_SEED`; `EDOT_TEST_RUN_ID` dapat diset untuk membuat ulang data yang sama. Bila tidak diset, run identifier dibuat unik agar company dari run sebelumnya tidak tertarget. Data yang dipakai test dilampirkan ke Allure sebagai `Actual Company Test Data`.
 - `CustomerData` di `utils/data_generator.py` menyediakan contract AI/fallback tervalidasi (name, contact, address, phone) untuk integrasi Maestro pada tahap berikutnya; suite Maestro belum diubah dalam scope ini.
@@ -174,6 +175,9 @@ make clean
 - Report Allure dihasilkan ke folder `allure-results/`.
 - Bila `allure` tersedia, perintah `make allure` atau `make allure-headed` akan membuka report di browser.
 - Folder `allure-results/` dan `allure-report/` tidak disimpan di repository karena merupakan artefak hasil eksekusi.
+- Screenshot failure juga tersedia secara lokal pada folder `screenshots/`.
+- Untuk failure pada test execution (`call`), buka test yang gagal di Allure lalu periksa attachment pada execution test tersebut.
+- Untuk failure login saat pembuatan `storage_state`, buka test yang terdampak melalui `Allure → Test → Execution → Set up → Login Setup Failure Screenshot`. Attachment setup ini tidak harus muncul pada attachment execution/call utama.
 - Evidence hasil eksekusi (Allure Report) dapat dilihat pada folder:
 
 ```

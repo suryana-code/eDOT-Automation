@@ -4,7 +4,6 @@ from pathlib import Path
 import allure
 import pytest
 from dotenv import load_dotenv
-
 from tests.login_setup import login
 
 load_dotenv()
@@ -19,6 +18,7 @@ def config():
         "storage_state": "auth/storage_state.json",
     }
 
+
 @pytest.fixture(scope="session")
 def storage_state(browser, config):
 
@@ -31,11 +31,39 @@ def storage_state(browser, config):
 
     page = browser.new_page()
 
-    login(page, config)
+    try:
+        login(page, config)
 
-    page.close()
+    except Exception:
+        screenshot_dir = Path("screenshots")
+        screenshot_dir.mkdir(parents=True, exist_ok=True)
+
+        screenshot_path = (
+            screenshot_dir / "storage_state_login_failure.png"
+        )
+
+        screenshot = page.screenshot(
+            full_page=True
+        )
+
+        page.screenshot(
+            path=str(screenshot_path),
+            full_page=True
+        )
+
+        allure.attach(
+            screenshot,
+            name="Login Setup Failure Screenshot",
+            attachment_type=allure.attachment_type.PNG
+        )
+
+        raise
+
+    finally:
+        page.close()
 
     return config["storage_state"]
+
 
 @pytest.fixture
 def authenticated_page(browser, storage_state, config):
@@ -52,6 +80,7 @@ def authenticated_page(browser, storage_state, config):
     yield page
 
     context.close()
+
 
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
@@ -72,10 +101,15 @@ def pytest_runtest_makereport(item, call):
 
             screenshot_path = screenshot_dir / f"{item.name}.png"
 
-            page.screenshot(path=str(screenshot_path), full_page=True)
+            screenshot = page.screenshot(full_page=True)
 
-            allure.attach.file(
-                str(screenshot_path),
-                name="Failure Screenshot",
+            allure.attach(
+                screenshot,
+                name="Login Setup Failure Screenshot",
                 attachment_type=allure.attachment_type.PNG
+            )
+
+            page.screenshot(
+                path=str(screenshot_path),
+                full_page=True
             )
