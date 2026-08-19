@@ -1,4 +1,4 @@
-.PHONY: test headed allure allure-headed allure-ci clean
+.PHONY: test headed allure allure-headed allure-ci triage clean
 
 # Run all tests (headless)
 test:
@@ -25,6 +25,10 @@ allure-ci:
 	rm -rf allure-results allure-report
 	pytest --alluredir=allure-results
 	allure generate allure-results --clean -o allure-report
+
+# Read existing Allure results only; does not run tests or change their outcome.
+triage:
+	python utils/failure_triage.py --results-dir allure-results --output triage-report.md
 
 # Clean generated reports
 clean:

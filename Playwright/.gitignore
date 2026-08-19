@@ -14,6 +14,7 @@ __pycache__/
 .vscode/
 allure-results/
 allure-report/
+triage-report.md
 screenshots/
 auth/storage_state.json
 pytestdebug.log

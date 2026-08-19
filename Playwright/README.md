@@ -113,6 +113,21 @@ make allure
 make allure-headed
 ```
 
+- Buat laporan failure triage dari hasil Allure yang sudah ada (tidak menjalankan test dan tidak mengubah hasil test):
+
+```bash
+make triage
+```
+
+Laporan dibuat di `triage-report.md`. Jika `EDOT_AI_API_KEY` tidak tersedia atau provider AI gagal, laporan tetap dibuat dengan status **AI unavailable; human triage required** tanpa mengarang verdict.
+
+- Buat evidence failure yang disengaja (hanya jalankan eksplisit; tidak dikoleksi oleh `make test`):
+
+```bash
+pytest tests/evidence_failure.py --alluredir=allure-results
+make triage
+```
+
 - Hapus report dan cache hasil test:
 
 ```bash
@@ -128,6 +143,7 @@ make clean
 - `company_page.py` menggunakan Page Object Model untuk memisahkan locator dan aksi halaman.
 - `data_generator.py` menggunakan AI pada runtime bila `EDOT_AI_API_KEY` tersedia. Output divalidasi schema; bila key tidak tersedia, provider gagal, atau output invalid setelah dua percobaan, generator memakai fallback Faker deterministik berdasarkan `EDOT_TEST_DATA_SEED`; `EDOT_TEST_RUN_ID` dapat diset untuk membuat ulang data yang sama. Bila tidak diset, run identifier dibuat unik agar company dari run sebelumnya tidak tertarget. Data yang dipakai test dilampirkan ke Allure sebagai `Actual Company Test Data`.
 - `CustomerData` di `utils/data_generator.py` menyediakan contract AI/fallback tervalidasi (name, contact, address, phone) untuk integrasi Maestro pada tahap berikutnya; suite Maestro belum diubah dalam scope ini.
+- `utils/failure_triage.py` dijalankan setelah suite untuk membaca `allure-results/*-result.json` secara read-only. AI hanya memberi proposal verdict (`Script/Environment Defect`, `Product Bug`, atau `Flaky`) untuk human review. Ia tidak dapat mengubah assertion, expected value, status test, source code, maupun membuat/menutup bug. Analisa mengikuti urutan: exception, locator, precondition, expected value, lalu reproducibility.
 
 ## Test Case Utama
 
