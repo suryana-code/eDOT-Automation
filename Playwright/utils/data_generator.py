@@ -15,11 +15,13 @@ class CompanyData:
             "industry": "Technology",
             "company_type": "Marketplace",
             "language": "Indonesia",
-            "country": "INDONESIA",
+            "country": "Indonesia",
             "province": "JAWA BARAT",
             "city": "KOTA BANDUNG",
             "district": "BUAHBATU",
+            "zone": "JATISARI",
             "sub_district": "JATISARI",
+            "postal_code": "40286",
             "address": fake.street_address(),
             "branch_name": "Headquarter"
 

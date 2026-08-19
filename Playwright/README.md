@@ -16,9 +16,9 @@ Project ini mencakup:
 
 - Login ke dashboard menggunakan credentials dari `.env`
 - Membuka halaman `Companies`
-- Menambahkan company baru melalui wizard multi-step
+- Menambahkan company baru melalui wizard multi-step, termasuk cascade Country → Province → City → District → Zone (label UI: Sub District) → Postal Code
 - Memverifikasi company card dan status `Active`
-- Membuka halaman detail company dan memvalidasi data
+- Membuka halaman detail company dan memvalidasi Tier 2 data: name, industry type, company type, address, postal code, email, dan phone
 - Menghapus company yang dibuat dalam satu alur test
 
 Bukan fokus project ini:
@@ -126,10 +126,10 @@ make clean
 
 - `tests/test_company.py`:
   - membuat company baru dengan data dummy dari `utils/data_generator.py`
-  - memverifikasi button dan field pada wizard
+  - memverifikasi button dan field pada wizard, termasuk Postal Code yang diisi otomatis setelah Zone dipilih
   - memverifikasi notifikasi success / redirect ke halaman companies
   - memeriksa card company yang dibuat
-  - membuka halaman detail dan memverifikasi data company
+  - membuka halaman detail dan memverifikasi Tier 2 data company, termasuk Postal Code
   - menghapus company dan memverifikasi deletion
 
 ## Asumsi dan Batasan

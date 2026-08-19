@@ -84,6 +84,20 @@ class CompanyPage(BasePage):
             has_text="Choose Sub District"
         )
 
+        # The live register form names the required Zone level "Sub District".
+        self.ddl_zone = page.get_by_role(
+            "combobox"
+        ).filter(
+            has_text="Choose Sub District"
+        )
+
+        # No test id or accessible name is exposed for this disabled combobox.
+        # Scope the text fallback to its visible field label.
+        self.ddl_postal_code = page.get_by_text(
+            "Postal Code*",
+            exact=True
+        ).locator("..").get_by_role("combobox")
+
         # =====================================================
         # TAB 2
 
@@ -207,6 +221,10 @@ class CompanyPage(BasePage):
             "Input Mobile Number"
         )
 
+        self.txt_detail_postal_code = page.get_by_placeholder(
+            "Choose Postal Code"
+        )
+
         self.btn_delete = page.get_by_role(
             "button",
             name="Delete"
@@ -289,6 +307,13 @@ class CompanyPage(BasePage):
 
     def select_sub_district(self, value):
         self.select_searchable_dropdown(self.ddl_sub_district, value)
+
+    def select_zone(self, value):
+        self.select_searchable_dropdown(self.ddl_zone, value)
+
+    def verify_postal_code_selected(self, value):
+        self.expect_text(self.ddl_postal_code, value)
+        self.expect_disabled(self.ddl_postal_code)
 
     # =====================================================
     # TAB 2
@@ -479,6 +504,8 @@ class CompanyPage(BasePage):
 
     def verify_company_detail(self, data):
 
+        # Tier 2 - each stored detail must equal the submitted test data.
+
         self.expect_value(
             self.txt_company_name,
             data["company_name"]
@@ -505,6 +532,11 @@ class CompanyPage(BasePage):
         )
 
         self.expect_value(self.txt_detail_phone, data["phone"])
+
+        self.expect_value(
+            self.txt_detail_postal_code,
+            data["postal_code"]
+        )
 
 
     def delete_company(self):

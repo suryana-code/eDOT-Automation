@@ -25,7 +25,8 @@ def test_add_company(authenticated_page):
     company.select_province(data["province"])
     company.select_city(data["city"])
     company.select_district(data["district"])
-    company.select_sub_district(data["sub_district"])
+    company.select_zone(data["zone"])
+    company.verify_postal_code_selected(data["postal_code"])
 
     company.verify_next_enabled()
     company.click_next()
@@ -57,4 +58,3 @@ def test_add_company(authenticated_page):
     company.delete_company()
     company.confirm_delete()
     company.verify_company_deleted(data["company_name"])
-    
