@@ -19,6 +19,23 @@ def test_company_data_uses_validated_deterministic_fallback_without_api_key(monk
     assert CompanyTestData.model_validate(first.data).postal_code == "40286"
 
 
+def test_company_fallback_name_varies_with_run_id(monkeypatch):
+    monkeypatch.delenv("EDOT_AI_API_KEY", raising=False)
+    monkeypatch.setenv("EDOT_TEST_DATA_SEED", "12345")
+
+    monkeypatch.setenv("EDOT_TEST_RUN_ID", "1111aaaa")
+    first = AIDataGenerator().generate_company()
+
+    monkeypatch.setenv("EDOT_TEST_RUN_ID", "2222bbbb")
+    second = AIDataGenerator().generate_company()
+
+    assert first.data["company_name"] != second.data["company_name"]
+    assert first.data["company_name"].startswith("PT ")
+    assert second.data["company_name"].startswith("PT ")
+    assert CompanyTestData.model_validate(first.data)
+    assert CompanyTestData.model_validate(second.data)
+
+
 def test_customer_fallback_matches_future_mobile_data_contract(monkeypatch):
     monkeypatch.delenv("EDOT_AI_API_KEY", raising=False)
 

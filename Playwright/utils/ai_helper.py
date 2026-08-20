@@ -170,13 +170,13 @@ class AIDataGenerator:
     def _run_id(self, kind: str) -> str:
         return self.run_id
 
-    def _faker(self) -> Faker:
+    def _faker(self, run_id: str) -> Faker:
         faker = Faker("id_ID")
-        faker.seed_instance(self._seed())
+        faker.seed_instance(f"{self._seed()}:{run_id}")
         return faker
 
     def _fallback_company(self, run_id: str) -> CompanyTestData:
-        faker = self._faker()
+        faker = self._faker(run_id)
         return CompanyTestData(
             company_name=f"PT {faker.last_name()} QA-{run_id}",
             email=f"qa.{run_id}@example.test",
@@ -196,7 +196,7 @@ class AIDataGenerator:
         )
 
     def _fallback_customer(self, run_id: str) -> CustomerTestData:
-        faker = self._faker()
+        faker = self._faker(run_id)
         return CustomerTestData(
             name=f"Pelanggan QA-{run_id}",
             contact=faker.name(),
