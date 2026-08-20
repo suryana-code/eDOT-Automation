@@ -70,4 +70,6 @@ If the Allure CLI is not installed, run `make test` and install Allure before op
 - Pytest is the wrapper/orchestrator: it loads `.env`, prepares dynamic data, invokes Maestro, and attaches the generated data and Maestro execution log to Allure.
 - Maestro YAML files under `flows/` contain the mobile automation steps.
 - Login is extracted to a shared flow under `flows/login/login.yaml`.
-- Use Maestro `record` to capture video if needed.
+- Maestro uses native `startRecording` and `stopRecording` in the main flow, covering Login and Create Customer. Each Pytest run writes its output and MP4 recording to a unique subdirectory under `recordings/`.
+- The Pytest wrapper attaches `Maestro Execution Output` as `text/plain` and `Maestro Screen Recording` as `video/mp4` inside the `Run Maestro main flow` Allure step. The video is intended to play inline in Allure-supported browsers.
+- When `ffmpeg` and `ffprobe` are available, the wrapper may attach an H.264 compressed MP4 only after confirming that its width and height match the original recording. Otherwise, it attaches the original MP4.

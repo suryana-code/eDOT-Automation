@@ -71,16 +71,30 @@ def test_create_customer_mobile(ai_customer_data):
     )
 
     with allure.step("Run Maestro main flow"):
-        result = run_maestro(env)
+        execution = run_maestro(env)
 
-    allure.attach(
-        result.stdout + "\n" + result.stderr,
-        name="Maestro Execution Log",
-        attachment_type=allure.attachment_type.TEXT,
-    )
+        allure.attach.file(
+            str(execution.output_path),
+            name="Maestro Execution Output",
+            attachment_type="text/plain",
+            extension="txt",
+        )
 
-    assert result.returncode == 0, (
+        for recording in execution.recordings:
+            if recording.attached_video_path:
+                with allure.step(f"{recording.name} evidence"):
+                    try:
+                        allure.attach.file(
+                            str(recording.attached_video_path),
+                            name="Maestro Screen Recording",
+                            attachment_type="video/mp4",
+                            extension="mp4",
+                        )
+                    except OSError:
+                        pass
+
+    assert execution.result.returncode == 0, (
         "Maestro flow execution failed:\n"
-        f"{result.stdout}\n"
-        f"{result.stderr}"
+        f"{execution.result.stdout}\n"
+        f"{execution.result.stderr}"
     )

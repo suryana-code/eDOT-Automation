@@ -1,4 +1,11 @@
 appId: ${APP_ID}
+onFlowStart:
+  - startRecording:
+      path: "recordings/${MAESTRO_EVIDENCE_RUN_ID}/maestro-execution"
+      label: "Capture Maestro execution for Allure evidence"
+      optional: true
+onFlowComplete:
+  - stopRecording
 ---
 - launchApp:
     clearState: true
