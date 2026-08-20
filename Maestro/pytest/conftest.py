@@ -1,72 +1,29 @@
-import random
-
-from faker import Faker
 
 import pytest
+from dotenv import load_dotenv
+from faker import Faker
+
+load_dotenv()
 
 fake = Faker("id_ID")
 
+
 @pytest.fixture
 def ai_customer_data():
-
-    channels = [
-        "General Trade (GT)",
-        "Modern Trade (MT)"
-    ]
-
-    outlet_types = [
-        "Grosir",
-        "Retail Small",
-        "Retail Medium"
-    ]
-
-    address_types = [
-        "Delivery Address",
-        "Invoice Address",
-        "Other"
-    ]
-
-    provinces = [
-        "RIAU"
-    ]
-
-    cities = [
-        "KAB KAMPAR"
-    ]
-
-    districts = [
-        "BANGKINANG KOTA"
-    ]
-
-    subdistricts = [
-        "KUMANTAN"
-    ]
-
     return {
-
         "outlet_name": fake.company(),
-
-        "phone": fake.msisdn()[:12],
-
-        "email": fake.email(),
-
+        "phone": fake.numerify("08############"),
+        "email": fake.unique.email(),
         "contact_person": fake.name(),
+        "address": fake.street_address(),
+        "ktp": fake.numerify("################"),
 
-        "channel": random.choice(channels),
+        "channel": "Modern Trade (MT)",
+        "outlet_type": "Grosir",
+        "address_type": "Delivery Address",
 
-        "outlet_type": random.choice(outlet_types),
-
-        "address_type": random.choice(address_types),
-
-        "address": fake.address(),
-
-        "province": random.choice(provinces),
-
-        "city": random.choice(cities),
-
-        "district": random.choice(districts),
-
-        "subdistrict": random.choice(subdistricts),
-
-        "ktp": fake.numerify("################")
+        "province": "RIAU",
+        "city": "KAB KAMPAR",
+        "district": "BANGKINANG KOTA",
+        "subdistrict": "KUMANTAN",
     }

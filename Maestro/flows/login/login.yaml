@@ -1,3 +1,44 @@
+# appId: id.edot.ework
+# ---
+# - runFlow:
+#     when:
+#       visible: "Not now"
+#     commands:
+#       - tapOn: "Not now"
+
+# - runFlow:
+#     when:
+#       visible: "Never"
+#     commands:
+#       - tapOn: "Never"
+
+# - runFlow:
+#     when:
+#       visible: "Ex: P104"
+#     commands:
+#       - tapOn: "Ex: P104"
+#       - inputText: "${COMPANY_ID}"
+#       - tapOn: "Ex: sfa-131600"
+#       - inputText: "${USER_NAME}"
+#       - tapOn: "Enter password"
+#       - inputText: "${PASSWORD}"
+#       - hideKeyboard
+#       - tapOn: "Sign In"
+#       - runFlow:
+#           when:
+#             visible: "Not now"
+#           commands:
+#             - tapOn: "Not now"
+#       - runFlow:
+#           when:
+#             visible: "Never"
+#           commands:
+#             - tapOn: "Never"
+
+# - extendedWaitUntil:
+#     visible: "Ranking currently unavailable"
+#     timeout: 10000
+
 appId: id.edot.ework
 ---
 - extendedWaitUntil:
@@ -5,19 +46,20 @@ appId: id.edot.ework
     timeout: 10000
 
 - tapOn: "Ex: P104"
-- inputText: "${COMPANY_ID}"
+- inputText: ${COMPANY_ID}
 
 - tapOn: "Ex: sfa-131600"
-- inputText: "${USER_NAME}"
+- inputText: ${USER_NAME}
 
 - tapOn: "Enter password"
-- inputText: "${PASSWORD}"
+- inputText: ${PASSWORD}
 
 - hideKeyboard
+
 - tapOn: "Sign In"
 
 - extendedWaitUntil:
     visible: "Ranking currently unavailable"
-    timeout: 10000
+    timeout: 15000
 
 - assertVisible: "Ranking currently unavailable"
