@@ -1,11 +1,4 @@
-appId: id.edot.ework
-
-
-# env:
-#   COMPANY_ID: "5049209"
-#   USER_NAME: "salesmanqaauto"
-#   PASSWORD: "it.QA2025"
-
+appId: ${APP_ID}
 ---
 - launchApp:
     clearState: true
@@ -13,5 +6,5 @@ appId: id.edot.ework
     file: login/login.yaml
 - runFlow:
     file: customer/create_customer.yaml
-# - runFlow:
-#     file: customer/verify_customer.yaml
+- runFlow:
+    file: customer/verify_customer.yaml

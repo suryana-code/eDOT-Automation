@@ -1,11 +1,17 @@
 appId: ${APP_ID}
 ---
+# Customer List
 - extendedWaitUntil:
-    visible: "${CUSTOMER_NAME}"
+    visible: "New Customer List"
     timeout: 15000
 
-- assertVisible: "${CUSTOMER_NAME}"
+- scrollUntilVisible:
+    element: "${OUTLET_NAME}"
+    direction: DOWN
+    timeout: 60000
+    speed: 60
+    visibilityPercentage: 50
+    centerElement: true
 
-- assertVisible: "${CUSTOMER_PHONE}"
-
-- assertVisible: "${CUSTOMER_ADDRESS}"
+# Verify created data
+- assertVisible: "${OUTLET_NAME}"

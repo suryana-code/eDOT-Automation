@@ -9,57 +9,65 @@ The test covers:
 - Customer creation with tier 2 validation
 - Customer verification after creation
 
-## Running the test
+## Setup and Running the Test
 
 ### Prerequisites
 
 - Maestro CLI installed and available via `maestro --version`
 - A connected Android device visible with `adb devices`
 - The app package `id.edot.ework` installed on the target device
-- Environment variables set for credentials and test data
+- Python dependencies installed with `pip install -r requirements.txt`
+- Allure CLI only when using `make allure`
 
 ### Environment variables
 
-Set these before running tests:
+Create a local `.env` file in the `Maestro/` directory with the credentials and application configuration required by the login flow:
 
 - `APP_ID` (example: `id.edot.ework`)
 - `COMPANY_ID`
 - `USER_NAME`
 - `PASSWORD`
-- `CUSTOMER_NAME`
-- `CUSTOMER_PHONE`
-- `CUSTOMER_ADDRESS`
 
-### Run via Maestro
+`pytest/conftest.py` loads `.env` through `python-dotenv`. Do not place credentials in YAML commands or commit local credentials.
 
-```bash
-cd /Users/suryana/Git/eDOT-Automation/Maestro
-maestro test -p android -e APP_ID=id.edot.ework -e COMPANY_ID=5049209 -e USER_NAME=salesmanqaauto -e PASSWORD=it.QA2025 -e CUSTOMER_NAME="Nama Pelanggan" -e CUSTOMER_PHONE="081234567890" -e CUSTOMER_ADDRESS="Alamat Test" flows/main.yaml
-```
-
-### Run via Pytest wrapper
+### Run via Makefile
 
 ```bash
-cd /Users/suryana/Git/eDOT-Automation/Maestro
-pytest -q pytest/test_mobile.py
+make test
 ```
 
-### Generate Allure report
+Run this command from the `Maestro/` directory. It is equivalent to:
 
 ```bash
-cd /Users/suryana/Git/eDOT-Automation/Maestro
-pytest
-allure serve allure-results
+pytest -v -s pytest/test_mobile.py
 ```
 
-If you do not have `allure` installed, install it first using your package manager or follow the official Allure installation guide.
+### Run a Maestro Flow Directly for Login Debugging
+
+The complete customer scenario should be run through Pytest because Pytest creates its dynamic customer data. To debug the reusable login flow directly, export the local `.env` values first:
+
+```bash
+set -a
+. ./.env
+set +a
+maestro test -p android flows/login/login.yaml
+```
+
+### Generate and Open Allure Report
+
+```bash
+make allure
+```
+
+`pytest.ini` writes Allure results to `allure-results/`; `make allure` runs the same Pytest wrapper and opens those results with `allure serve`.
+
+If the Allure CLI is not installed, run `make test` and install Allure before opening `allure-results/`.
 
 ### Notes
 
-- Credentials are not hardcoded in YAML flows.
+- `.env` provides credentials and application configuration for the Pytest wrapper.
+- Faker in `pytest/conftest.py` creates dynamic customer data for each test execution.
+- Pytest is the wrapper/orchestrator: it loads `.env`, prepares dynamic data, invokes Maestro, and attaches the generated data and Maestro execution log to Allure.
+- Maestro YAML files under `flows/` contain the mobile automation steps.
 - Login is extracted to a shared flow under `flows/login/login.yaml`.
-- The test wrapper now attaches Maestro stdout/stderr and input metadata to Allure.
-- This project currently does not implement centralized DDT (data-driven testing) for Maestro.
-  Data is generated and stored per current file-based fixtures in `pytest/conftest.py`.
-- Existing Maestro flow data remains file-driven in the current repo structure.
 - Use Maestro `record` to capture video if needed.
