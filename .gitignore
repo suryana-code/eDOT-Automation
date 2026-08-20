@@ -1,1 +1,6 @@
 .DS_Store
+
+# Local runtime configuration. Keep the template version-controlled.
+.env
+.env.*
+!.env.example

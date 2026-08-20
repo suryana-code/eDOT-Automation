@@ -6,7 +6,8 @@ import pytest
 from dotenv import load_dotenv
 from tests.login_setup import login
 
-load_dotenv()
+ROOT_ENV_PATH = Path(__file__).resolve().parents[1] / ".env"
+load_dotenv(ROOT_ENV_PATH)
 
 
 @pytest.fixture(scope="session")

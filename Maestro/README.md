@@ -21,14 +21,14 @@ The test covers:
 
 ### Environment variables
 
-Create a local `.env` file in the `Maestro/` directory with the credentials and application configuration required by the login flow:
+Create a shared local `.env` file in the repository root (`../.env` when running from `Maestro/`) with the credentials and application configuration required by the login flow:
 
 - `APP_ID` (example: `id.edot.ework`)
 - `COMPANY_ID`
 - `USER_NAME`
 - `PASSWORD`
 
-`pytest/conftest.py` loads `.env` through `python-dotenv`. Do not place credentials in YAML commands or commit local credentials.
+`pytest/conftest.py` explicitly loads the repository-root `.env` through `python-dotenv`. Do not place credentials in YAML commands or commit local credentials.
 
 ### Run via Makefile
 
@@ -44,11 +44,11 @@ pytest -v -s pytest/test_mobile.py
 
 ### Run a Maestro Flow Directly for Login Debugging
 
-The complete customer scenario should be run through Pytest because Pytest creates its dynamic customer data. To debug the reusable login flow directly, export the local `.env` values first:
+The complete customer scenario should be run through Pytest because Pytest creates its dynamic customer data. To debug the reusable login flow directly, export the shared root `.env` values first:
 
 ```bash
 set -a
-. ./.env
+. ../.env
 set +a
 maestro test -p android flows/login/login.yaml
 ```
@@ -65,7 +65,7 @@ If the Allure CLI is not installed, run `make test` and install Allure before op
 
 ### Notes
 
-- `.env` provides credentials and application configuration for the Pytest wrapper.
+- The repository-root `.env` provides credentials and application configuration for the Pytest wrapper.
 - Faker in `pytest/conftest.py` creates dynamic customer data for each test execution.
 - Pytest is the wrapper/orchestrator: it loads `.env`, prepares dynamic data, invokes Maestro, and attaches the generated data and Maestro execution log to Allure.
 - Maestro YAML files under `flows/` contain the mobile automation steps.

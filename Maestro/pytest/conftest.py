@@ -1,9 +1,11 @@
 
 import pytest
+from pathlib import Path
 from dotenv import load_dotenv
 from faker import Faker
 
-load_dotenv()
+ROOT_ENV_PATH = Path(__file__).resolve().parents[2] / ".env"
+load_dotenv(ROOT_ENV_PATH)
 
 fake = Faker("id_ID")
 

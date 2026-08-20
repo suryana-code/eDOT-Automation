@@ -14,7 +14,7 @@ Framework dibangun menggunakan pendekatan Page Object Model (POM), session authe
 
 Project ini mencakup:
 
-- Login ke dashboard menggunakan credentials dari `.env`
+- Login ke dashboard menggunakan credentials dari shared `.env` di repository root
 - Membuka halaman `Companies`
 - Menambahkan company baru melalui wizard multi-step, termasuk cascade Country → Province → City → District → Zone (label UI: Sub District) → Postal Code
 - Memverifikasi company card dan status `Active`
@@ -46,7 +46,7 @@ Bukan fokus project ini:
 - `pytest.ini` - konfigurasi pytest
 - `Makefile` - perintah untuk menjalankan automation
 - `.gitignore` - file dan folder yang tidak perlu dicommit
-- `.env` - environment runtime (tidak dicommit)
+- `../.env` - shared environment runtime (tidak dicommit)
 
 ## Requirement
 
@@ -75,7 +75,7 @@ pip install -r requirements.txt
 playwright install
 ```
 
-4. Buat file `.env` di root project. Contoh:
+4. Buat file `.env` di root repository (`../.env` saat berada di folder `Playwright`). Contoh:
 
 ```bash
 BASE_URL=https://your-edot-app-url

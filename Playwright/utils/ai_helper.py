@@ -16,6 +16,7 @@ AI_MODEL_ENV = "EDOT_AI_MODEL"
 TEST_DATA_SEED_ENV = "EDOT_TEST_DATA_SEED"
 TEST_RUN_ID_ENV = "EDOT_TEST_RUN_ID"
 DEFAULT_MODEL = "gpt-4.1-mini"
+DEFAULT_TEST_DATA_SEED = 20260819
 MAX_AI_ATTEMPTS = 2
 
 
@@ -163,7 +164,8 @@ class AIDataGenerator:
 
     @staticmethod
     def _seed() -> int:
-        return int(os.getenv(TEST_DATA_SEED_ENV, "20260819"))
+        seed = os.getenv(TEST_DATA_SEED_ENV)
+        return int(seed) if seed else DEFAULT_TEST_DATA_SEED
 
     def _run_id(self, kind: str) -> str:
         return self.run_id
