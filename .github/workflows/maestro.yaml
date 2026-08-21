@@ -9,6 +9,7 @@ permissions:
 jobs:
   maestro:
     runs-on: ubuntu-latest
+
     env:
       APP_ID: ${{ secrets.MAESTRO_APP_ID }}
       COMPANY_ID: ${{ secrets.MAESTRO_COMPANY_ID }}
@@ -46,7 +47,18 @@ jobs:
           "$HOME/.maestro/bin/maestro" --version | grep -Fx "2.6.1"
 
       - name: Install Allure CLI
-        run: sudo npm install -g allure-commandline --save-dev
+        run: |
+          sudo npm install -g allure-commandline --save-dev
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | \
+            sudo tee /etc/udev/rules.d/99-kvm4all.rules
+
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+          ls -la /dev/kvm
 
       - name: Start emulator and run Maestro
         uses: reactivecircus/android-emulator-runner@v2
@@ -56,47 +68,113 @@ jobs:
           arch: x86_64
           profile: pixel_5
           disable-animations: true
+          force-avd-creation: false
+          emulator-boot-timeout: 600
           emulator-options: >-
-            -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
-            -camera-back none -camera-front none -no-snapshot-save
+            -no-window
+            -gpu swiftshader_indirect
+            -noaudio
+            -no-boot-anim
+            -camera-back none
+            -camera-front none
+            -no-snapshot-save
+
           script: |
             set -euo pipefail
+
             : "${MAESTRO_APK_URL:?MAESTRO_APK_URL is required}"
             : "${MAESTRO_APK_SHA256:?MAESTRO_APK_SHA256 is required}"
+
+            echo "========================================"
+            echo "Android emulator information"
+            echo "========================================"
 
             adb devices
             adb shell getprop ro.build.version.sdk
             adb shell getprop ro.product.cpu.abi
             adb shell getprop ro.product.cpu.abilist
 
+            echo "========================================"
+            echo "Download APK"
+            echo "========================================"
+
             apk_dir=/tmp/edot-apk
             apk_zip=/tmp/edot-maestro-apk.zip
+
             mkdir -p "$apk_dir"
-            curl --fail --location --retry 3 --output "$apk_zip" "$MAESTRO_APK_URL"
-            printf '%s  %s\n' "$MAESTRO_APK_SHA256" "$apk_zip" | sha256sum --check --status
+
+            curl \
+              --fail \
+              --location \
+              --retry 3 \
+              --output "$apk_zip" \
+              "$MAESTRO_APK_URL"
+
+            echo "Verifying APK checksum..."
+
+            printf '%s  %s\n' \
+              "$MAESTRO_APK_SHA256" \
+              "$apk_zip" | \
+              sha256sum --check --status
+
+            echo "Checksum valid"
+
             unzip -q "$apk_zip" -d "$apk_dir"
-            find "$apk_dir" -maxdepth 1 -type f -name '*.apk' -printf '%f\n' | sort
+
+            echo "APK files:"
+
+            find "$apk_dir" \
+              -maxdepth 1 \
+              -type f \
+              -name '*.apk' \
+              -printf '%f\n' | \
+              sort
 
             test -f "$apk_dir/base.apk"
             test -f "$apk_dir/split_config.arm64_v8a.apk"
             test -f "$apk_dir/split_config.xxhdpi.apk"
 
+            echo "========================================"
+            echo "Install application"
+            echo "========================================"
+
             adb install-multiple -r \
               "$apk_dir/base.apk" \
               "$apk_dir/split_config.arm64_v8a.apk" \
               "$apk_dir/split_config.xxhdpi.apk"
+
+            echo "Installed package:"
+
             adb shell pm path "$APP_ID"
-            adb shell monkey -p "$APP_ID" -c android.intent.category.LAUNCHER 1
+
+            echo "Launching application..."
+
+            adb shell monkey \
+              -p "$APP_ID" \
+              -c android.intent.category.LAUNCHER \
+              1
+
+            echo "========================================"
+            echo "Run Maestro automation"
+            echo "========================================"
 
             cd Maestro
+
             make test
 
       - name: Generate Allure report
         if: always()
         run: |
-          if find Maestro/allure-results -name '*-result.json' -print -quit | grep -q .; then
-            allure generate Maestro/allure-results --clean -o Maestro/allure-report || \
+          if find Maestro/allure-results \
+            -name '*-result.json' \
+            -print -quit | grep -q .; then
+
+            allure generate \
+              Maestro/allure-results \
+              --clean \
+              -o Maestro/allure-report || \
               echo "Allure report tidak dapat dibuat; result tetap akan di-upload"
+
           fi
 
       - name: Upload Allure results
