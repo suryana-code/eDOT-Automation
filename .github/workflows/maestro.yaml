@@ -306,6 +306,32 @@ jobs:
             make -C "$GITHUB_WORKSPACE/Maestro" test
 
       # ============================================================
+      # Show Maestro debug output
+      # ============================================================
+
+      - name: Show Maestro debug files
+        if: always()
+        run: |
+          echo "========================================"
+          echo "MAESTRO DEBUG FILES"
+          echo "========================================"
+
+          if [ -d "Maestro/recordings" ]; then
+            find Maestro/recordings -type f -print
+          else
+            echo "Maestro/recordings does not exist"
+          fi
+
+          echo "========================================"
+          echo "MAESTRO DEBUG DIRECTORY"
+          echo "========================================"
+
+          find Maestro/recordings \
+            -maxdepth 4 \
+            -type f \
+            -print 2>/dev/null || true
+
+      # ============================================================
       # Generate Allure report
       # ============================================================
 
@@ -355,6 +381,7 @@ jobs:
           name: maestro-evidence
           path: |
             Maestro/recordings/
+            Maestro/debug/
             Maestro/*.log
           if-no-files-found: warn
 
