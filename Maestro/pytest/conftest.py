@@ -1,4 +1,5 @@
 
+import allure
 import pytest
 from pathlib import Path
 from dotenv import load_dotenv
@@ -8,6 +9,13 @@ ROOT_ENV_PATH = Path(__file__).resolve().parents[2] / ".env"
 load_dotenv(ROOT_ENV_PATH)
 
 fake = Faker("id_ID")
+
+
+@pytest.hookimpl(tryfirst=True)
+def pytest_runtest_setup(item):
+    """Group all Mobile test results under one explicit Allure suite."""
+    allure.dynamic.parent_suite("Maestro")
+    allure.dynamic.suite("Mobile Automation")
 
 
 @pytest.fixture

@@ -40,6 +40,7 @@ Evidence dalam combined report tetap melekat pada test asalnya:
 
 - Playwright failure screenshot berada pada test terkait; setup login failure dapat ditemukan pada `Execution → Set up`.
 - Maestro melampirkan `Maestro Execution Output` dan `Maestro Screen Recording` (`video/mp4`) pada step eksekusi Maestro.
+- Pada Allure `SUITES`, `Playwright` menandai Web automation dan `Maestro` menandai Mobile automation.
 
 Combined report ini adalah workflow lokal. GitHub Actions yang ada tetap menjalankan dan mempublikasikan report Playwright secara terpisah; mobile CI belum dikonfigurasi.
 

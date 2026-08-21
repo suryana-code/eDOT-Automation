@@ -1,0 +1,21 @@
+{
+  "source": "fallback",
+  "ai_attempts": 0,
+  "company": {
+    "company_name": "PT Nababan QA-259dca6e",
+    "email": "qa.259dca6e@example.test",
+    "phone": "6281188884310",
+    "industry": "Technology",
+    "company_type": "Marketplace",
+    "language": "Indonesia",
+    "country": "Indonesia",
+    "province": "JAWA BARAT",
+    "city": "KOTA BANDUNG",
+    "district": "BUAHBATU",
+    "zone": "JATISARI",
+    "sub_district": "JATISARI",
+    "postal_code": "40286",
+    "address": "Jl. Dr. Djunjunan No. 3",
+    "branch_name": "Headquarter"
+  }
+}

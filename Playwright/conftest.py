@@ -10,6 +10,13 @@ ROOT_ENV_PATH = Path(__file__).resolve().parents[1] / ".env"
 load_dotenv(ROOT_ENV_PATH)
 
 
+@pytest.hookimpl(tryfirst=True)
+def pytest_runtest_setup(item):
+    """Group all Web test results under one explicit Allure suite."""
+    allure.dynamic.parent_suite("Playwright")
+    allure.dynamic.suite("Web Automation")
+
+
 @pytest.fixture(scope="session")
 def config():
     return {
