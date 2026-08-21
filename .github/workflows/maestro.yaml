@@ -128,10 +128,7 @@ jobs:
             echo "Install application"
             echo "========================================"
 
-            adb install-multiple -r \
-              "$RUNNER_TEMP/edot-apk/base.apk" \
-              "$RUNNER_TEMP/edot-apk/split_config.arm64_v8a.apk" \
-              "$RUNNER_TEMP/edot-apk/split_config.xxhdpi.apk"
+            adb install-multiple -r "$RUNNER_TEMP/edot-apk/base.apk" "$RUNNER_TEMP/edot-apk/split_config.arm64_v8a.apk" "$RUNNER_TEMP/edot-apk/split_config.xxhdpi.apk"
 
             echo "========================================"
             echo "Verify package"
@@ -143,18 +140,13 @@ jobs:
             echo "Launch application"
             echo "========================================"
 
-            adb shell monkey \
-              -p "$APP_ID" \
-              -c android.intent.category.LAUNCHER \
-              1
+            adb shell monkey -p "$APP_ID" -c android.intent.category.LAUNCHER 1
 
             echo "========================================"
             echo "Run Maestro automation"
             echo "========================================"
 
-            cd "$GITHUB_WORKSPACE/Maestro"
-
-            make test
+            cd "$GITHUB_WORKSPACE/Maestro" && make test
 
       - name: Generate Allure report
         if: always()
