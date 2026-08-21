@@ -55,21 +55,18 @@ jobs:
           pip install -r requirements.txt
 
       # ============================================================
-      # Maestro
+      # Install Maestro
       # ============================================================
 
       - name: Install Maestro 2.6.1
         run: |
           export MAESTRO_VERSION=2.6.1
-
           curl -Ls https://get.maestro.mobile.dev | bash
-
           echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
-
           "$HOME/.maestro/bin/maestro" --version
 
       # ============================================================
-      # Allure
+      # Install Allure
       # ============================================================
 
       - name: Install Allure CLI
@@ -83,39 +80,21 @@ jobs:
 
       - name: Download and verify APK package
         run: |
-          set -euo pipefail
+          set -e
 
           APK_ZIP="$RUNNER_TEMP/edot-maestro-apk.zip"
           APK_DIR="$RUNNER_TEMP/edot-apk"
 
-          APK_SHA256="$(printf '%s' "$MAESTRO_APK_SHA256" | tr -d '[:space:]')"
-
-          if ! [[ "$APK_SHA256" =~ ^[A-Fa-f0-9]{64}$ ]]; then
-            echo "ERROR: MAESTRO_APK_SHA256 harus berisi SHA-256 64 karakter hex"
-            exit 1
-          fi
-
           rm -rf "$APK_DIR"
           mkdir -p "$APK_DIR"
 
-          echo "Downloading APK package..."
+          echo "Downloading APK..."
 
-          curl \
-            --fail \
-            --location \
-            --retry 3 \
-            --retry-all-errors \
-            --output "$APK_ZIP" \
-            "https://github.com/suryana-code/eDOT-Automation/releases/download/maestro-ci-v1/edot-maestro-apk.zip"
-
-          echo "APK downloaded successfully"
+          curl --fail --location --retry 3 --retry-all-errors --output "$APK_ZIP" "https://github.com/suryana-code/eDOT-Automation/releases/download/maestro-ci-v1/edot-maestro-apk.zip"
 
           echo "Verifying SHA-256..."
 
-          printf '%s  %s\n' \
-            "$APK_SHA256" \
-            "$APK_ZIP" \
-            | sha256sum --check --status
+          printf '%s  %s\n' "$MAESTRO_APK_SHA256" "$APK_ZIP" | sha256sum --check --status
 
           echo "SHA-256 verification passed"
 
@@ -123,36 +102,29 @@ jobs:
 
           unzip -q "$APK_ZIP" -d "$APK_DIR"
 
-          echo "APK contents:"
-          find "$APK_DIR" \
-            -maxdepth 1 \
-            -type f \
-            -name "*.apk" \
-            -printf "%f\n" \
-            | sort
+          echo "APK files:"
+
+          find "$APK_DIR" -maxdepth 1 -type f -name "*.apk" -print
 
           test -f "$APK_DIR/base.apk"
           test -f "$APK_DIR/split_config.arm64_v8a.apk"
           test -f "$APK_DIR/split_config.xxhdpi.apk"
 
-          echo "All required APK files are available"
+          echo "All APK files are available"
 
       # ============================================================
-      # KVM
+      # Enable KVM
       # ============================================================
 
       - name: Enable KVM
         run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
-            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
-
           ls -la /dev/kvm
 
       # ============================================================
-      # Emulator + Maestro
+      # Start emulator and run Maestro
       # ============================================================
 
       - name: Start emulator and run Maestro
@@ -163,7 +135,6 @@ jobs:
           target: google_apis
           arch: x86_64
           profile: pixel_5
-
           disable-animations: true
           force-avd-creation: true
           emulator-boot-timeout: 600
@@ -178,36 +149,51 @@ jobs:
             -no-snapshot-save
 
           script: |
-
             echo "========================================"
             echo "ANDROID ENVIRONMENT"
             echo "========================================"
 
             adb devices
 
-            echo "SDK:"
             adb shell getprop ro.build.version.sdk
 
-            echo "Primary ABI:"
             adb shell getprop ro.product.cpu.abi
 
-            echo "Supported ABIs:"
             adb shell getprop ro.product.cpu.abilist
 
+            echo "========================================"
+            echo "VERIFY ENVIRONMENT"
+            echo "========================================"
+
+            test -n "$APP_ID"
+
+            test -n "$COMPANY_ID"
+
+            test -n "$USER_NAME"
+
+            test -n "$PASSWORD"
+
+            echo "APP_ID configured"
+
+            echo "COMPANY_ID configured"
+
+            echo "USER_NAME configured"
+
+            echo "PASSWORD configured"
 
             echo "========================================"
             echo "VERIFY APK"
             echo "========================================"
 
-            echo "APK directory:"
             echo "$RUNNER_TEMP/edot-apk"
 
             ls -lah "$RUNNER_TEMP/edot-apk"
 
             test -f "$RUNNER_TEMP/edot-apk/base.apk"
-            test -f "$RUNNER_TEMP/edot-apk/split_config.arm64_v8a.apk"
-            test -f "$RUNNER_TEMP/edot-apk/split_config.xxhdpi.apk"
 
+            test -f "$RUNNER_TEMP/edot-apk/split_config.arm64_v8a.apk"
+
+            test -f "$RUNNER_TEMP/edot-apk/split_config.xxhdpi.apk"
 
             echo "========================================"
             echo "INSTALL APPLICATION"
@@ -217,15 +203,11 @@ jobs:
 
             echo "Application installed successfully"
 
-
             echo "========================================"
             echo "VERIFY PACKAGE"
             echo "========================================"
 
             adb shell pm path "$APP_ID"
-
-            adb shell dumpsys package "$APP_ID" | head -80
-
 
             echo "========================================"
             echo "LAUNCH APPLICATION"
@@ -237,88 +219,49 @@ jobs:
 
             sleep 8
 
-
             echo "========================================"
             echo "VERIFY MAESTRO PROJECT"
             echo "========================================"
 
-            echo "Workspace:"
-            echo "$GITHUB_WORKSPACE"
+            cd "$GITHUB_WORKSPACE/Maestro"
 
-            echo "Maestro directory:"
-            ls -lah "$GITHUB_WORKSPACE/Maestro"
+            pwd
 
-            echo "Pytest directory:"
-            ls -lah "$GITHUB_WORKSPACE/Maestro/pytest"
+            ls -lah
 
-            test -f "$GITHUB_WORKSPACE/Maestro/pytest/test_mobile.py"
+            ls -lah pytest
 
+            test -f pytest/test_mobile.py
 
             echo "========================================"
             echo "PYTHON / PYTEST"
             echo "========================================"
 
             python --version
+
             pytest --version
-
-
-            echo "========================================"
-            echo "ENVIRONMENT CHECK"
-            echo "========================================"
-
-            echo "APP_ID is configured:"
-            if [ -n "$APP_ID" ]; then
-              echo "YES"
-            else
-              echo "NO"
-              exit 1
-            fi
-
-            echo "COMPANY_ID is configured:"
-            if [ -n "$COMPANY_ID" ]; then
-              echo "YES"
-            else
-              echo "NO"
-              exit 1
-            fi
-
 
             echo "========================================"
             echo "RUN MAESTRO AUTOMATION"
             echo "========================================"
 
-            cd "$GITHUB_WORKSPACE/Maestro"
-
             python -m pytest -vv -s pytest/test_mobile.py
 
       # ============================================================
-      # Generate Allure
+      # Generate Allure report
       # ============================================================
 
       - name: Generate Allure report
         if: always()
         run: |
-          echo "========================================"
-          echo "GENERATE ALLURE REPORT"
-          echo "========================================"
-
-          if [ -d "Maestro/allure-results" ] && \
-             find Maestro/allure-results \
-             -name '*-result.json' \
-             -print -quit \
-             | grep -q .; then
-
-            allure generate \
-              Maestro/allure-results \
-              --clean \
-              -o Maestro/allure-report
-
+          if [ -d "Maestro/allure-results" ]; then
+            allure generate Maestro/allure-results --clean -o Maestro/allure-report || true
           else
-            echo "No Allure results found."
+            echo "No Allure results directory found."
           fi
 
       # ============================================================
-      # Upload Allure Results
+      # Upload Allure results
       # ============================================================
 
       - name: Upload Allure results
@@ -330,7 +273,7 @@ jobs:
           if-no-files-found: warn
 
       # ============================================================
-      # Upload Maestro Evidence
+      # Upload Maestro evidence
       # ============================================================
 
       - name: Upload Maestro evidence
@@ -341,11 +284,10 @@ jobs:
           path: |
             Maestro/recordings/
             Maestro/*.log
-            Maestro/pytest/
           if-no-files-found: warn
 
       # ============================================================
-      # Upload Maestro Debug Output
+      # Upload Maestro debug
       # ============================================================
 
       - name: Upload Maestro debug output
@@ -353,13 +295,11 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: maestro-debug-output
-          path: |
-            /home/runner/.maestro/tests/
-            /home/runner/.maestro/
+          path: /home/runner/.maestro/
           if-no-files-found: warn
 
       # ============================================================
-      # Upload Allure Report
+      # Upload Allure report
       # ============================================================
 
       - name: Upload Allure report
