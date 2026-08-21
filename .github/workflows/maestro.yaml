@@ -26,7 +26,7 @@ jobs:
         uses: actions/checkout@v4
 
       # ============================================================
-      # Python
+      # Setup Python
       # ============================================================
 
       - name: Setup Python
@@ -35,7 +35,7 @@ jobs:
           python-version: "3.9"
 
       # ============================================================
-      # Java
+      # Setup Java
       # ============================================================
 
       - name: Setup Java
@@ -45,7 +45,7 @@ jobs:
           java-version: "21"
 
       # ============================================================
-      # Python dependencies
+      # Install Python dependencies
       # ============================================================
 
       - name: Install Python dependencies
@@ -78,7 +78,7 @@ jobs:
           allure --version
 
       # ============================================================
-      # Download APK
+      # Download and verify APK
       # ============================================================
 
       - name: Download and verify APK package
@@ -88,11 +88,15 @@ jobs:
           APK_ZIP="$RUNNER_TEMP/edot-maestro-apk.zip"
           APK_DIR="$RUNNER_TEMP/edot-apk"
 
+          echo "========================================"
+          echo "Prepare APK directory"
+          echo "========================================"
+
           rm -rf "$APK_DIR"
           mkdir -p "$APK_DIR"
 
           echo "========================================"
-          echo "Download APK"
+          echo "Download APK package"
           echo "========================================"
 
           curl \
@@ -107,30 +111,38 @@ jobs:
           echo "Verify SHA-256"
           echo "========================================"
 
+          APK_SHA256="$(printf '%s' "$MAESTRO_APK_SHA256" | tr -d '[:space:]')"
+
+          if ! [[ "$APK_SHA256" =~ ^[A-Fa-f0-9]{64}$ ]]; then
+            echo "Invalid MAESTRO_APK_SHA256"
+            exit 1
+          fi
+
           printf '%s  %s\n' \
-            "$MAESTRO_APK_SHA256" \
+            "$APK_SHA256" \
             "$APK_ZIP" \
             | sha256sum --check --status
 
           echo "SHA-256 verification passed"
 
           echo "========================================"
-          echo "Extract APK"
+          echo "Extract APK package"
           echo "========================================"
 
           unzip -q "$APK_ZIP" -d "$APK_DIR"
 
-          find "$APK_DIR" \
-            -maxdepth 1 \
-            -type f \
-            -name "*.apk" \
-            -print
+          echo "APK contents:"
+          ls -lah "$APK_DIR"
+
+          echo "========================================"
+          echo "Verify APK files"
+          echo "========================================"
 
           test -f "$APK_DIR/base.apk"
           test -f "$APK_DIR/split_config.arm64_v8a.apk"
           test -f "$APK_DIR/split_config.xxhdpi.apk"
 
-          echo "All APK files are available"
+          echo "APK verification passed"
 
       # ============================================================
       # Enable KVM
@@ -180,10 +192,13 @@ jobs:
 
             adb devices
 
+            echo "SDK:"
             adb shell getprop ro.build.version.sdk
 
+            echo "Primary ABI:"
             adb shell getprop ro.product.cpu.abi
 
+            echo "Supported ABIs:"
             adb shell getprop ro.product.cpu.abilist
 
 
@@ -203,26 +218,45 @@ jobs:
             echo "VERIFY APK"
             echo "========================================"
 
+            APK_DIR="$RUNNER_TEMP/edot-apk"
+
+            BASE_APK="$APK_DIR/base.apk"
+            ABI_APK="$APK_DIR/split_config.arm64_v8a.apk"
+            DENSITY_APK="$APK_DIR/split_config.xxhdpi.apk"
+
             echo "APK directory:"
-            echo "$RUNNER_TEMP/edot-apk"
+            echo "$APK_DIR"
 
-            ls -lah "$RUNNER_TEMP/edot-apk"
+            echo "Base APK:"
+            echo "$BASE_APK"
 
-            test -f "$RUNNER_TEMP/edot-apk/base.apk"
-            test -f "$RUNNER_TEMP/edot-apk/split_config.arm64_v8a.apk"
-            test -f "$RUNNER_TEMP/edot-apk/split_config.xxhdpi.apk"
+            echo "ABI APK:"
+            echo "$ABI_APK"
 
-            echo "APK verification passed"
+            echo "Density APK:"
+            echo "$DENSITY_APK"
+
+            test -f "$BASE_APK"
+            test -f "$ABI_APK"
+            test -f "$DENSITY_APK"
+
+            ls -lh "$BASE_APK"
+            ls -lh "$ABI_APK"
+            ls -lh "$DENSITY_APK"
+
+            echo "APK files are ready"
 
 
             echo "========================================"
             echo "INSTALL APPLICATION"
             echo "========================================"
 
-            adb install-multiple -r \
-              "$RUNNER_TEMP/edot-apk/base.apk" \
-              "$RUNNER_TEMP/edot-apk/split_config.arm64_v8a.apk" \
-              "$RUNNER_TEMP/edot-apk/split_config.xxhdpi.apk"
+            echo "ADB version:"
+            adb version
+
+            echo "Installing APK..."
+
+            adb install-multiple -r "$BASE_APK" "$ABI_APK" "$DENSITY_APK"
 
             echo "Application installed successfully"
 
@@ -232,6 +266,8 @@ jobs:
             echo "========================================"
 
             adb shell pm path "$APP_ID"
+
+            echo "Package verification completed"
 
 
             echo "========================================"
@@ -259,9 +295,7 @@ jobs:
             echo "$GITHUB_WORKSPACE/Maestro"
 
             test -d "$GITHUB_WORKSPACE/Maestro"
-
             test -f "$GITHUB_WORKSPACE/Maestro/Makefile"
-
             test -f "$GITHUB_WORKSPACE/Maestro/pytest/test_mobile.py"
 
             echo "Maestro project verified"
@@ -272,6 +306,7 @@ jobs:
             echo "========================================"
 
             ls -lah "$GITHUB_WORKSPACE/Maestro"
+
 
             echo "========================================"
             echo "PYTEST DIRECTORY"
@@ -285,7 +320,6 @@ jobs:
             echo "========================================"
 
             python --version
-
             pytest --version
 
 
@@ -302,14 +336,23 @@ jobs:
       - name: Generate Allure report
         if: always()
         run: |
-          if [ -d "Maestro/allure-results" ]; then
+          echo "========================================"
+          echo "Generate Allure report"
+          echo "========================================"
+
+          if [ -d "Maestro/allure-results" ] && \
+             find Maestro/allure-results \
+             -name '*-result.json' \
+             -print -quit \
+             | grep -q .; then
+
             allure generate \
               Maestro/allure-results \
               --clean \
-              -o Maestro/allure-report \
-              || true
+              -o Maestro/allure-report
+
           else
-            echo "No Allure results directory found."
+            echo "No Allure results found."
           fi
 
       # ============================================================
