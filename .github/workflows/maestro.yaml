@@ -65,7 +65,9 @@ jobs:
           rm -rf "$apk_dir"
           mkdir -p "$apk_dir"
 
-          echo "Downloading APK package..."
+          echo "========================================"
+          echo "Download APK package"
+          echo "========================================"
 
           curl \
             --fail \
@@ -75,7 +77,9 @@ jobs:
             --output "$apk_zip" \
             "https://github.com/suryana-code/eDOT-Automation/releases/download/maestro-ci-v1/edot-maestro-apk.zip"
 
-          echo "Verifying SHA-256..."
+          echo "========================================"
+          echo "Verify SHA-256"
+          echo "========================================"
 
           printf '%s  %s\n' \
             "$apk_sha256" \
@@ -84,12 +88,13 @@ jobs:
 
           echo "SHA-256 verification passed"
 
-          echo "Extracting APK..."
+          echo "========================================"
+          echo "Extract APK"
+          echo "========================================"
 
           unzip -q "$apk_zip" -d "$apk_dir"
 
           echo "APK files:"
-
           find "$apk_dir" \
             -maxdepth 1 \
             -type f \
@@ -157,13 +162,24 @@ jobs:
             sleep 5
 
             echo "========================================"
+            echo "Check APK files"
+            echo "========================================"
+
+            ls -lah "$RUNNER_TEMP/edot-apk"
+
+            test -f "$RUNNER_TEMP/edot-apk/base.apk"
+            test -f "$RUNNER_TEMP/edot-apk/split_config.arm64_v8a.apk"
+            test -f "$RUNNER_TEMP/edot-apk/split_config.xxhdpi.apk"
+
+            echo "APK files found"
+
+            echo "========================================"
             echo "Install application"
             echo "========================================"
 
-            adb install-multiple -r \
-              "$RUNNER_TEMP/edot-apk/base.apk" \
-              "$RUNNER_TEMP/edot-apk/split_config.arm64_v8a.apk" \
-              "$RUNNER_TEMP/edot-apk/split_config.xxhdpi.apk"
+            adb install-multiple -r "$RUNNER_TEMP/edot-apk/base.apk" "$RUNNER_TEMP/edot-apk/split_config.arm64_v8a.apk" "$RUNNER_TEMP/edot-apk/split_config.xxhdpi.apk"
+
+            echo "Application installed successfully"
 
             echo "========================================"
             echo "Verify package"
@@ -177,10 +193,7 @@ jobs:
 
             adb shell am force-stop "$APP_ID"
 
-            adb shell monkey \
-              -p "$APP_ID" \
-              -c android.intent.category.LAUNCHER \
-              1
+            adb shell monkey -p "$APP_ID" -c android.intent.category.LAUNCHER 1
 
             echo "Application launched"
 
@@ -192,7 +205,18 @@ jobs:
 
             cd "$GITHUB_WORKSPACE/Maestro"
 
-            pytest -v -s pytest/test_mobile.py
+            echo "Current directory:"
+            pwd
+
+            echo "Maestro files:"
+            ls -la
+
+            echo "Makefile:"
+            cat Makefile
+
+            echo "Running make test..."
+
+            make test
 
       - name: Generate Allure report
         if: always()
