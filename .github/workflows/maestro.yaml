@@ -61,8 +61,6 @@ jobs:
 
       - name: Start emulator and run Maestro
         uses: reactivecircus/android-emulator-runner@v2
-        env:
-          APK_URL: https://github.com/suryana-code/eDOT-Automation/releases/download/maestro-ci-v1/edot-maestro-apk.zip
         with:
           api-level: 35
           target: google_apis
@@ -71,6 +69,7 @@ jobs:
           disable-animations: true
           force-avd-creation: true
           emulator-boot-timeout: 600
+
           emulator-options: >-
             -no-window
             -gpu swiftshader_indirect
@@ -110,7 +109,7 @@ jobs:
               --retry 3 \
               --retry-delay 2 \
               --output /tmp/edot-maestro-apk.zip \
-              "$APK_URL"
+              https://github.com/suryana-code/eDOT-Automation/releases/download/maestro-ci-v1/edot-maestro-apk.zip
 
             echo "APK package downloaded."
 
@@ -171,6 +170,8 @@ jobs:
               -p "$APP_ID" \
               -c android.intent.category.LAUNCHER \
               1
+
+            sleep 5
 
             echo "========================================"
             echo "Run Maestro automation"
