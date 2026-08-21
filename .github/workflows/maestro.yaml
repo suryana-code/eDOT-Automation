@@ -49,6 +49,29 @@ jobs:
         run: |
           sudo npm install -g allure-commandline --save-dev
 
+      - name: Download and verify APK package
+        run: |
+          set -euo pipefail
+          apk_zip="$RUNNER_TEMP/edot-maestro-apk.zip"
+          apk_dir="$RUNNER_TEMP/edot-apk"
+
+          rm -rf "$apk_dir"
+          mkdir -p "$apk_dir"
+
+          curl --fail --location --retry 3 --retry-all-errors \
+            --output "$apk_zip" \
+            "https://github.com/suryana-code/eDOT-Automation/releases/download/maestro-ci-v1/edot-maestro-apk.zip"
+
+          printf '%s  %s\n' "$MAESTRO_APK_SHA256" "$apk_zip" \
+            | sha256sum --check --status
+
+          unzip -q "$apk_zip" -d "$apk_dir"
+          find "$apk_dir" -maxdepth 1 -type f -name '*.apk' -printf '%f\n' | sort
+
+          test -f "$apk_dir/base.apk"
+          test -f "$apk_dir/split_config.arm64_v8a.apk"
+          test -f "$apk_dir/split_config.xxhdpi.apk"
+
       - name: Enable KVM
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
@@ -96,65 +119,13 @@ jobs:
             adb shell getprop ro.product.cpu.abilist
 
             echo "========================================"
-            echo "Prepare APK"
-            echo "========================================"
-
-            mkdir -p /tmp/edot-apk
-
-            echo "Downloading APK package..."
-
-            curl \
-              --fail \
-              --location \
-              --retry 3 \
-              --retry-delay 2 \
-              --output /tmp/edot-maestro-apk.zip \
-              https://github.com/suryana-code/eDOT-Automation/releases/download/maestro-ci-v1/edot-maestro-apk.zip
-
-            echo "APK package downloaded."
-
-            ls -lh /tmp/edot-maestro-apk.zip
-
-            echo "========================================"
-            echo "Verify SHA-256"
-            echo "========================================"
-
-            printf '%s  %s\n' \
-              "$MAESTRO_APK_SHA256" \
-              /tmp/edot-maestro-apk.zip \
-              | sha256sum --check --status
-
-            echo "SHA-256 verification passed."
-
-            echo "========================================"
-            echo "Extract APK"
-            echo "========================================"
-
-            unzip -q \
-              /tmp/edot-maestro-apk.zip \
-              -d /tmp/edot-apk
-
-            echo "APK files:"
-
-            find /tmp/edot-apk \
-              -maxdepth 1 \
-              -type f \
-              -name '*.apk' \
-              -printf '%f\n' \
-              | sort
-
-            test -f /tmp/edot-apk/base.apk
-            test -f /tmp/edot-apk/split_config.arm64_v8a.apk
-            test -f /tmp/edot-apk/split_config.xxhdpi.apk
-
-            echo "========================================"
             echo "Install application"
             echo "========================================"
 
             adb install-multiple -r \
-              /tmp/edot-apk/base.apk \
-              /tmp/edot-apk/split_config.arm64_v8a.apk \
-              /tmp/edot-apk/split_config.xxhdpi.apk
+              "$RUNNER_TEMP/edot-apk/base.apk" \
+              "$RUNNER_TEMP/edot-apk/split_config.arm64_v8a.apk" \
+              "$RUNNER_TEMP/edot-apk/split_config.xxhdpi.apk"
 
             echo "========================================"
             echo "Verify package"
@@ -170,8 +141,6 @@ jobs:
               -p "$APP_ID" \
               -c android.intent.category.LAUNCHER \
               1
-
-            sleep 5
 
             echo "========================================"
             echo "Run Maestro automation"
