@@ -28,13 +28,13 @@ cd Maestro && make allure
 Untuk satu execution lokal yang menggabungkan Playwright dan Maestro ke dalam satu report Allure, jalankan dari root repository:
 
 ```bash
-make test-all          # menjalankan Web lalu Mobile ke allure-results/
-make generate-all      # membuat allure-report/ dari hasil yang sudah ada
+make test-all          # menjalankan Web + Mobile parallel dan merge ke .allure/results/
+make generate-all      # membuat .allure/report/ dari hasil yang sudah ada
 make open-all          # membuka combined report
 make allure-all        # menjalankan seluruh alur, generate, lalu membuka report
 ```
 
-`test-all` selalu membersihkan root `allure-results/` terlebih dahulu agar report hanya memuat execution saat ini. Kedua framework dijalankan secara serial; jika salah satu gagal, framework berikutnya tetap dijalankan dan command akhir tetap gagal setelah evidence dikumpulkan.
+`test-all` selalu membersihkan `.allure/` terlebih dahulu agar report hanya memuat execution saat ini. Playwright dan Maestro dijalankan parallel ke `.allure/playwright-results/` dan `.allure/maestro-results/`, lalu digabung ke `.allure/results/`. Jika salah satu gagal, command akhir tetap gagal setelah evidence dikumpulkan.
 
 Evidence dalam combined report tetap melekat pada test asalnya:
 
@@ -42,7 +42,7 @@ Evidence dalam combined report tetap melekat pada test asalnya:
 - Maestro melampirkan `Maestro Execution Output` dan `Maestro Screen Recording` (`video/mp4`) pada step eksekusi Maestro.
 - Pada Allure `SUITES`, `Playwright` menandai Web automation dan `Maestro` menandai Mobile automation.
 
-Combined report ini adalah workflow lokal. GitHub Actions yang ada tetap menjalankan dan mempublikasikan report Playwright secara terpisah; mobile CI belum dikonfigurasi.
+Standalone report tetap berada di folder framework masing-masing. Combined report adalah workflow lokal; seluruh `.allure/` merupakan runtime artifact dan tidak di-commit. GitHub Actions yang ada tetap menjalankan dan mempublikasikan report Playwright secara terpisah; mobile CI belum dikonfigurasi.
 
 ---
 

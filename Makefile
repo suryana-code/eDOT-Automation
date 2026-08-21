@@ -1,16 +1,17 @@
 .PHONY: test-all generate-all open-all allure-all clean-all
 
-ALLURE_RESULTS := allure-results
-ALLURE_REPORT := allure-report
+ALLURE_DIR := .allure
+ALLURE_RESULTS := $(ALLURE_DIR)/results
+ALLURE_REPORT := $(ALLURE_DIR)/report
 
-PLAYWRIGHT_RESULTS := .allure-results-playwright
-MAESTRO_RESULTS := .allure-results-maestro
+PLAYWRIGHT_RESULTS := $(ALLURE_DIR)/playwright-results
+MAESTRO_RESULTS := $(ALLURE_DIR)/maestro-results
 
 # Run Web and Mobile suites in parallel.
 # Each framework writes to its own temporary Allure result directory.
 # Results are merged only after both suites finish.
 test-all:
-	@rm -rf "$(ALLURE_RESULTS)" "$(PLAYWRIGHT_RESULTS)" "$(MAESTRO_RESULTS)"
+	@rm -rf "$(ALLURE_DIR)"
 	@mkdir -p "$(ALLURE_RESULTS)" "$(PLAYWRIGHT_RESULTS)" "$(MAESTRO_RESULTS)"
 	@echo "========================================"
 	@echo "Starting combined automation"
@@ -94,9 +95,6 @@ allure-all:
 	fi; \
 	exit $$open_status
 
-# Remove combined and temporary Allure results/reports.
+# Remove only integrated Allure artifacts.
 clean-all:
-	rm -rf "$(ALLURE_RESULTS)" \
-	       "$(ALLURE_REPORT)" \
-	       "$(PLAYWRIGHT_RESULTS)" \
-	       "$(MAESTRO_RESULTS)"
+	rm -rf "$(ALLURE_DIR)"
