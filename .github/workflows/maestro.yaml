@@ -61,8 +61,11 @@ jobs:
       - name: Install Maestro 2.6.1
         run: |
           export MAESTRO_VERSION=2.6.1
+
           curl -Ls https://get.maestro.mobile.dev | bash
+
           echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+
           "$HOME/.maestro/bin/maestro" --version
 
       # ============================================================
@@ -88,23 +91,40 @@ jobs:
           rm -rf "$APK_DIR"
           mkdir -p "$APK_DIR"
 
-          echo "Downloading APK..."
+          echo "========================================"
+          echo "Download APK"
+          echo "========================================"
 
-          curl --fail --location --retry 3 --retry-all-errors --output "$APK_ZIP" "https://github.com/suryana-code/eDOT-Automation/releases/download/maestro-ci-v1/edot-maestro-apk.zip"
+          curl \
+            --fail \
+            --location \
+            --retry 3 \
+            --retry-all-errors \
+            --output "$APK_ZIP" \
+            "https://github.com/suryana-code/eDOT-Automation/releases/download/maestro-ci-v1/edot-maestro-apk.zip"
 
-          echo "Verifying SHA-256..."
+          echo "========================================"
+          echo "Verify SHA-256"
+          echo "========================================"
 
-          printf '%s  %s\n' "$MAESTRO_APK_SHA256" "$APK_ZIP" | sha256sum --check --status
+          printf '%s  %s\n' \
+            "$MAESTRO_APK_SHA256" \
+            "$APK_ZIP" \
+            | sha256sum --check --status
 
           echo "SHA-256 verification passed"
 
-          echo "Extracting APK..."
+          echo "========================================"
+          echo "Extract APK"
+          echo "========================================"
 
           unzip -q "$APK_ZIP" -d "$APK_DIR"
 
-          echo "APK files:"
-
-          find "$APK_DIR" -maxdepth 1 -type f -name "*.apk" -print
+          find "$APK_DIR" \
+            -maxdepth 1 \
+            -type f \
+            -name "*.apk" \
+            -print
 
           test -f "$APK_DIR/base.apk"
           test -f "$APK_DIR/split_config.arm64_v8a.apk"
@@ -118,9 +138,12 @@ jobs:
 
       - name: Enable KVM
         run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
+
           ls -la /dev/kvm
 
       # ============================================================
@@ -135,6 +158,7 @@ jobs:
           target: google_apis
           arch: x86_64
           profile: pixel_5
+
           disable-animations: true
           force-avd-creation: true
           emulator-boot-timeout: 600
@@ -149,6 +173,7 @@ jobs:
             -no-snapshot-save
 
           script: |
+
             echo "========================================"
             echo "ANDROID ENVIRONMENT"
             echo "========================================"
@@ -161,47 +186,46 @@ jobs:
 
             adb shell getprop ro.product.cpu.abilist
 
+
             echo "========================================"
             echo "VERIFY ENVIRONMENT"
             echo "========================================"
 
             test -n "$APP_ID"
-
             test -n "$COMPANY_ID"
-
             test -n "$USER_NAME"
-
             test -n "$PASSWORD"
 
-            echo "APP_ID configured"
+            echo "Environment variables are configured"
 
-            echo "COMPANY_ID configured"
-
-            echo "USER_NAME configured"
-
-            echo "PASSWORD configured"
 
             echo "========================================"
             echo "VERIFY APK"
             echo "========================================"
 
+            echo "APK directory:"
             echo "$RUNNER_TEMP/edot-apk"
 
             ls -lah "$RUNNER_TEMP/edot-apk"
 
             test -f "$RUNNER_TEMP/edot-apk/base.apk"
-
             test -f "$RUNNER_TEMP/edot-apk/split_config.arm64_v8a.apk"
-
             test -f "$RUNNER_TEMP/edot-apk/split_config.xxhdpi.apk"
+
+            echo "APK verification passed"
+
 
             echo "========================================"
             echo "INSTALL APPLICATION"
             echo "========================================"
 
-            adb install-multiple -r "$RUNNER_TEMP/edot-apk/base.apk" "$RUNNER_TEMP/edot-apk/split_config.arm64_v8a.apk" "$RUNNER_TEMP/edot-apk/split_config.xxhdpi.apk"
+            adb install-multiple -r \
+              "$RUNNER_TEMP/edot-apk/base.apk" \
+              "$RUNNER_TEMP/edot-apk/split_config.arm64_v8a.apk" \
+              "$RUNNER_TEMP/edot-apk/split_config.xxhdpi.apk"
 
             echo "Application installed successfully"
+
 
             echo "========================================"
             echo "VERIFY PACKAGE"
@@ -209,29 +233,52 @@ jobs:
 
             adb shell pm path "$APP_ID"
 
+
             echo "========================================"
             echo "LAUNCH APPLICATION"
             echo "========================================"
 
-            adb shell monkey -p "$APP_ID" -c android.intent.category.LAUNCHER 1
+            adb shell monkey \
+              -p "$APP_ID" \
+              -c android.intent.category.LAUNCHER \
+              1
 
             echo "Application launched"
 
             sleep 8
 
+
             echo "========================================"
             echo "VERIFY MAESTRO PROJECT"
             echo "========================================"
 
-            cd "$GITHUB_WORKSPACE/Maestro"
+            echo "Repository:"
+            echo "$GITHUB_WORKSPACE"
 
-            pwd
+            echo "Maestro directory:"
+            echo "$GITHUB_WORKSPACE/Maestro"
 
-            ls -lah
+            test -d "$GITHUB_WORKSPACE/Maestro"
 
-            ls -lah pytest
+            test -f "$GITHUB_WORKSPACE/Maestro/Makefile"
 
-            test -f pytest/test_mobile.py
+            test -f "$GITHUB_WORKSPACE/Maestro/pytest/test_mobile.py"
+
+            echo "Maestro project verified"
+
+
+            echo "========================================"
+            echo "MAESTRO DIRECTORY"
+            echo "========================================"
+
+            ls -lah "$GITHUB_WORKSPACE/Maestro"
+
+            echo "========================================"
+            echo "PYTEST DIRECTORY"
+            echo "========================================"
+
+            ls -lah "$GITHUB_WORKSPACE/Maestro/pytest"
+
 
             echo "========================================"
             echo "PYTHON / PYTEST"
@@ -241,11 +288,12 @@ jobs:
 
             pytest --version
 
+
             echo "========================================"
-            echo "RUN MAESTRO AUTOMATION"
+            echo "RUN MAESTRO TEST"
             echo "========================================"
 
-            python -m pytest -vv -s pytest/test_mobile.py
+            make -C "$GITHUB_WORKSPACE/Maestro" test
 
       # ============================================================
       # Generate Allure report
@@ -255,7 +303,11 @@ jobs:
         if: always()
         run: |
           if [ -d "Maestro/allure-results" ]; then
-            allure generate Maestro/allure-results --clean -o Maestro/allure-report || true
+            allure generate \
+              Maestro/allure-results \
+              --clean \
+              -o Maestro/allure-report \
+              || true
           else
             echo "No Allure results directory found."
           fi
@@ -287,7 +339,7 @@ jobs:
           if-no-files-found: warn
 
       # ============================================================
-      # Upload Maestro debug
+      # Upload Maestro debug output
       # ============================================================
 
       - name: Upload Maestro debug output
