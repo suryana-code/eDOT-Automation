@@ -54,6 +54,12 @@ jobs:
           set -euo pipefail
           apk_zip="$RUNNER_TEMP/edot-maestro-apk.zip"
           apk_dir="$RUNNER_TEMP/edot-apk"
+          apk_sha256="$(printf '%s' "$MAESTRO_APK_SHA256" | tr -d '[:space:]')"
+
+          if ! [[ "$apk_sha256" =~ ^[A-Fa-f0-9]{64}$ ]]; then
+            echo "MAESTRO_APK_SHA256 harus berisi SHA-256 64 karakter hex"
+            exit 1
+          fi
 
           rm -rf "$apk_dir"
           mkdir -p "$apk_dir"
@@ -62,7 +68,7 @@ jobs:
             --output "$apk_zip" \
             "https://github.com/suryana-code/eDOT-Automation/releases/download/maestro-ci-v1/edot-maestro-apk.zip"
 
-          printf '%s  %s\n' "$MAESTRO_APK_SHA256" "$apk_zip" \
+          printf '%s  %s\n' "$apk_sha256" "$apk_zip" \
             | sha256sum --check --status
 
           unzip -q "$apk_zip" -d "$apk_dir"
