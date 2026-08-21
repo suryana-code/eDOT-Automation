@@ -106,6 +106,8 @@ appId: ${APP_ID}
 - tapOn:
     id: "signature_view"
 
+# Point-based swipes are the last resort here: the signature pad requires a
+# handwritten gesture and does not expose an action-level selector for a stroke.
 # Signature stroke 1
 - swipe:
     start: 20%,76%

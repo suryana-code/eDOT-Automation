@@ -7,7 +7,7 @@ Framework dibangun menggunakan pendekatan Page Object Model (POM), session authe
 ## Tujuan Project
 
 - Memvalidasi alur `register company` di aplikasi eDOT.
-- Mengecek bahwa company baru dapat dibuat, detailnya ditampilkan benar, dan dapat dihapus kembali.
+- Mengecek bahwa company baru dapat dibuat, detailnya ditampilkan benar, dan cleanup delete dijalankan kembali.
 - Menjaga test environment bersih dengan cleanup data setelah test selesai.
 
 ## Lingkup Test
@@ -19,7 +19,7 @@ Project ini mencakup:
 - Menambahkan company baru melalui wizard multi-step, termasuk cascade Country → Province → City → District → Zone (label UI: Sub District) → Postal Code
 - Memverifikasi company card dan status `Active`
 - Membuka halaman detail company dan memvalidasi Tier 2 data: name, industry type, company type, address, postal code, email, dan phone
-- Menghapus company yang dibuat dalam satu alur test
+- Menjalankan cleanup delete untuk company yang dibuat dalam satu alur test
 
 Bukan fokus project ini:
 
@@ -164,7 +164,15 @@ make clean
   - memverifikasi notifikasi success / redirect ke halaman companies
   - memeriksa card company yang dibuat
   - membuka halaman detail dan memverifikasi Tier 2 data company, termasuk Postal Code
-  - menghapus company dan memverifikasi deletion
+  - menjalankan cleanup delete untuk company yang dibuat
+
+## Known Product Issue — Company Deletion
+
+**Expected behavior:** company yang sudah dihapus tidak lagi muncul pada **Companies** list setelah halaman di-refresh/reload.
+
+**Actual behavior:** aplikasi menampilkan success toast untuk delete, tetapi company masih dapat muncul pada **Companies** list setelah refresh/reload. Entry yang masih tampil tersebut dapat membuka data detail `null`.
+
+Temuan ini didokumentasikan sebagai `BUG-001` pada [`finding bug.md`](finding%20bug.md). Automation tetap menjalankan delete dan reload list, tetapi menggunakan workaround sementara agar known product issue ini tidak menghentikan execution flow lainnya. Dengan demikian, suite saat ini **tidak mengklaim** bahwa company sudah benar-benar hilang dari list; hard assertion harus diaktifkan kembali setelah issue product diperbaiki.
 
 ## Asumsi dan Batasan
 

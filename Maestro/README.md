@@ -30,6 +30,10 @@ Create a shared local `.env` file in the repository root (`../.env` when running
 
 `pytest/conftest.py` explicitly loads the repository-root `.env` through `python-dotenv`. Do not place credentials in YAML commands or commit local credentials.
 
+### Take Home Test fallback account
+
+The current Maestro flow uses the fallback company/account provided in the Take Home Test rather than the company created by the Web flow: Company ID `5049209` and username `salesmanqaauto`. The password is kept only in the local root `.env` and is intentionally not documented here. This fallback may be expired, as noted in the assignment.
+
 ### Run via Makefile
 
 ```bash
@@ -81,6 +85,7 @@ If the Allure CLI is not installed, run `make test` and install Allure before op
 - Pytest is the wrapper/orchestrator: it loads `.env`, prepares dynamic data, invokes Maestro, and attaches the generated data and Maestro execution log to Allure.
 - Maestro YAML files under `flows/` contain the mobile automation steps.
 - Login is extracted to a shared flow under `flows/login/login.yaml`.
+- Customer verification is performed on **New Customer List** because the application does not expose a customer detail page after registration. The flow verifies the runtime outlet name and street address shown on the created customer card. Customer ID is application-generated, and status is not asserted because the same status can appear on other cards without a card-level selector.
 - Maestro uses native `startRecording` and `stopRecording` in the main flow, covering Login and Create Customer. Each Pytest run writes its output and MP4 recording to a unique subdirectory under `recordings/`.
 - The Pytest wrapper attaches `Maestro Execution Output` as `text/plain` and `Maestro Screen Recording` as `video/mp4` inside the `Run Maestro main flow` Allure step. The video is intended to play inline in Allure-supported browsers.
 - When `ffmpeg` and `ffprobe` are available, the wrapper may attach an H.264 compressed MP4 only after confirming that its width and height match the original recording. Otherwise, it attaches the original MP4.
