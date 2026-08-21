@@ -61,6 +61,8 @@ jobs:
 
       - name: Start emulator and run Maestro
         uses: reactivecircus/android-emulator-runner@v2
+        env:
+          APK_URL: https://github.com/suryana-code/eDOT-Automation/releases/download/maestro-ci-v1/edot-maestro-apk.zip
         with:
           api-level: 35
           target: google_apis
@@ -79,8 +81,6 @@ jobs:
             -no-snapshot-save
 
           script: |
-            set -eu
-
             echo "========================================"
             echo "Android Emulator Information"
             echo "========================================"
@@ -100,12 +100,7 @@ jobs:
             echo "Prepare APK"
             echo "========================================"
 
-            APK_URL="https://github.com/suryana-code/eDOT-Automation/releases/download/maestro-ci-v1/edot-maestro-apk.zip"
-
-            apk_dir="/tmp/edot-apk"
-            apk_zip="/tmp/edot-maestro-apk.zip"
-
-            mkdir -p "$apk_dir"
+            mkdir -p /tmp/edot-apk
 
             echo "Downloading APK package..."
 
@@ -114,56 +109,53 @@ jobs:
               --location \
               --retry 3 \
               --retry-delay 2 \
-              --output "$apk_zip" \
+              --output /tmp/edot-maestro-apk.zip \
               "$APK_URL"
 
             echo "APK package downloaded."
 
-            ls -lh "$apk_zip"
+            ls -lh /tmp/edot-maestro-apk.zip
 
             echo "========================================"
             echo "Verify SHA-256"
             echo "========================================"
 
-            if [ -n "${MAESTRO_APK_SHA256:-}" ]; then
-              printf '%s  %s\n' \
-                "$MAESTRO_APK_SHA256" \
-                "$apk_zip" \
-                | sha256sum --check --status
+            printf '%s  %s\n' \
+              "$MAESTRO_APK_SHA256" \
+              /tmp/edot-maestro-apk.zip \
+              | sha256sum --check --status
 
-              echo "SHA-256 verification passed."
-            else
-              echo "WARNING: MAESTRO_APK_SHA256 is not configured."
-            fi
+            echo "SHA-256 verification passed."
 
             echo "========================================"
             echo "Extract APK"
             echo "========================================"
 
-            unzip -q "$apk_zip" -d "$apk_dir"
+            unzip -q \
+              /tmp/edot-maestro-apk.zip \
+              -d /tmp/edot-apk
 
             echo "APK files:"
-            find "$apk_dir" \
+
+            find /tmp/edot-apk \
               -maxdepth 1 \
               -type f \
               -name '*.apk' \
               -printf '%f\n' \
               | sort
 
-            test -f "$apk_dir/base.apk"
-            test -f "$apk_dir/split_config.arm64_v8a.apk"
-            test -f "$apk_dir/split_config.xxhdpi.apk"
+            test -f /tmp/edot-apk/base.apk
+            test -f /tmp/edot-apk/split_config.arm64_v8a.apk
+            test -f /tmp/edot-apk/split_config.xxhdpi.apk
 
             echo "========================================"
             echo "Install application"
             echo "========================================"
 
             adb install-multiple -r \
-              "$apk_dir/base.apk" \
-              "$apk_dir/split_config.arm64_v8a.apk" \
-              "$apk_dir/split_config.xxhdpi.apk"
-
-            echo "Application installed."
+              /tmp/edot-apk/base.apk \
+              /tmp/edot-apk/split_config.arm64_v8a.apk \
+              /tmp/edot-apk/split_config.xxhdpi.apk
 
             echo "========================================"
             echo "Verify package"
@@ -180,13 +172,11 @@ jobs:
               -c android.intent.category.LAUNCHER \
               1
 
-            sleep 5
-
             echo "========================================"
             echo "Run Maestro automation"
             echo "========================================"
 
-            cd Maestro
+            cd "$GITHUB_WORKSPACE/Maestro"
 
             make test
 
