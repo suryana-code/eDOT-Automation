@@ -13,7 +13,7 @@ fake = Faker("id_ID")
 
 @pytest.hookimpl(tryfirst=True)
 def pytest_runtest_setup(item):
-    """Group all Mobile test results under one explicit Allure suite."""
+    """Mengelompokkan seluruh hasil test Mobile pada satu suite Allure eksplisit."""
     allure.dynamic.parent_suite("Maestro")
     allure.dynamic.suite("Mobile Automation")
 

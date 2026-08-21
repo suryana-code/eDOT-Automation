@@ -1,6 +1,6 @@
-"""Read Allure failure results and produce an advisory-only Markdown triage report.
+"""Membaca result failure Allure dan membuat report triage Markdown advisory-only.
 
-This module never invokes pytest, changes Allure results, or modifies test source.
+Modul ini tidak pernah memanggil Pytest, mengubah result Allure, atau memodifikasi source test.
 """
 
 import argparse
@@ -12,22 +12,50 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List, Literal, Optional
 
 import requests
-from pydantic import BaseModel, ConfigDict, Field, ValidationError
+from dotenv import load_dotenv
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
 try:
-    # Package import used by pytest and other project modules.
+    # Import paket yang digunakan oleh Pytest dan modul project lain.
     from utils.ai_helper import AI_API_KEY_ENV, AI_MODEL_ENV, DEFAULT_MODEL, AIDataGenerator
 except ModuleNotFoundError:  # pragma: no cover - direct `python utils/...` entry point
-    # Direct-script import used by `make triage`.
+    # Import script langsung yang digunakan oleh `make triage`.
     from ai_helper import AI_API_KEY_ENV, AI_MODEL_ENV, DEFAULT_MODEL, AIDataGenerator
 
 
 MAX_ATTACHMENT_CHARS = 4_000
 MAX_AI_ATTEMPTS = 2
+ROOT_ENV_PATH = Path(__file__).resolve().parents[2] / ".env"
+load_dotenv(ROOT_ENV_PATH)
+
+EVIDENCE_STAGES = (
+    "Exception/timeout/assertion",
+    "Locator correctness and uniqueness",
+    "Previous steps and preconditions",
+    "Expected-value correctness",
+    "Reproducibility/intermittency",
+)
+STOPPED_AFTER_FIRST_MATCH = "Not evaluated after first applicable match."
+
+
+class TriageEvidenceStep(BaseModel):
+    """Satu pemeriksaan triage berurutan yang dikembalikan oleh advisory AI."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    stage: Literal[
+        "Exception/timeout/assertion",
+        "Locator correctness and uniqueness",
+        "Previous steps and preconditions",
+        "Expected-value correctness",
+        "Reproducibility/intermittency",
+    ]
+    finding: str = Field(min_length=1, max_length=1_000)
+    applicable: bool
 
 
 class TriageAdvice(BaseModel):
-    """The only data the AI is allowed to return for a failed test."""
+    """Satu-satunya data yang boleh dikembalikan AI untuk test gagal."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -35,7 +63,44 @@ class TriageAdvice(BaseModel):
     reasoning: str = Field(min_length=1, max_length=1_500)
     confidence: int = Field(ge=0, le=100)
     recommended_human_follow_up: str = Field(min_length=1, max_length=1_000)
-    evidence_sequence: List[str] = Field(min_length=5, max_length=5)
+    first_applicable_match: Literal[
+        "Exception/timeout/assertion",
+        "Locator correctness and uniqueness",
+        "Previous steps and preconditions",
+        "Expected-value correctness",
+        "Reproducibility/intermittency",
+    ]
+    evidence_sequence: List[TriageEvidenceStep] = Field(min_length=5, max_length=5)
+
+    @model_validator(mode="after")
+    def enforce_evidence_order_and_stop(self):
+        """Menolak output advisory yang melewati stage atau mengevaluasi setelah kecocokan pertama."""
+        stages = tuple(entry.stage for entry in self.evidence_sequence)
+        if stages != EVIDENCE_STAGES:
+            raise ValueError("evidence_sequence must use the required ordered stages")
+
+        try:
+            match_index = next(
+                index
+                for index, entry in enumerate(self.evidence_sequence)
+                if entry.applicable
+            )
+        except StopIteration as error:
+            raise ValueError("evidence_sequence must identify a first applicable match") from error
+
+        if self.first_applicable_match != EVIDENCE_STAGES[match_index]:
+            raise ValueError("first_applicable_match must be the first applicable evidence stage")
+
+        if any(entry.applicable for entry in self.evidence_sequence[match_index + 1:]):
+            raise ValueError("evidence evaluation must stop after the first applicable match")
+
+        if any(
+            entry.finding != STOPPED_AFTER_FIRST_MATCH
+            for entry in self.evidence_sequence[match_index + 1:]
+        ):
+            raise ValueError("stages after the first applicable match must be marked as not evaluated")
+
+        return self
 
 
 @dataclass(frozen=True)
@@ -57,7 +122,7 @@ class TriageResult:
 
 
 def read_failed_results(results_dir: Path) -> List[FailedAllureTest]:
-    """Read only failed *-result.json files; no Allure artifact is modified."""
+    """Membaca hanya file *-result.json gagal; tidak ada artefak Allure yang diubah."""
     failures = []
     for result_path in sorted(results_dir.glob("*-result.json")):
         try:
@@ -77,7 +142,7 @@ def read_failed_results(results_dir: Path) -> List[FailedAllureTest]:
                 error=details.get("message", "No error message in Allure result"),
                 trace=details.get("trace", ""),
                 steps=_collect_steps(result.get("steps", [])),
-                attachments=_read_attachments(result.get("attachments", []), results_dir),
+                attachments=_read_attachments(_collect_attachments(result), results_dir),
             )
         )
     return failures
@@ -91,6 +156,19 @@ def _collect_steps(steps: Iterable[Dict[str, Any]]) -> List[str]:
             collected.append(str(name))
         collected.extend(_collect_steps(step.get("steps", [])))
     return collected
+
+
+def _collect_attachments(result: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Mengumpulkan attachment tingkat result dan nested step tanpa mengubah data Allure."""
+    attachments = list(result.get("attachments", []))
+
+    def visit(steps: Iterable[Dict[str, Any]]) -> None:
+        for step in steps:
+            attachments.extend(step.get("attachments", []))
+            visit(step.get("steps", []))
+
+    visit(result.get("steps", []))
+    return attachments
 
 
 def _read_attachments(
@@ -115,7 +193,7 @@ def _read_attachments(
 
 
 class FailureTriageAI:
-    """Small, constrained OpenAI client used only to classify existing failures."""
+    """Client OpenAI kecil dan terbatas yang hanya mengklasifikasikan failure yang sudah ada."""
 
     def __init__(
         self,
@@ -176,10 +254,12 @@ You must not propose changes to assertions, expected values, test code, test exe
 bug trackers, or Allure results. Do not state that a test passed.
 
 Classify the existing failure as exactly one of: Script/Environment Defect,
-Product Bug, Flaky. Analyse evidence in this exact order and return five concise
-evidence_sequence entries with these labels: (1) Exception/timeout/assertion,
+Product Bug, Flaky. Evaluate evidence in this exact order: (1) Exception/timeout/assertion,
 (2) Locator correctness and uniqueness, (3) Previous steps and preconditions,
-(4) Expected-value correctness, (5) Reproducibility/intermittency.
+(4) Expected-value correctness, (5) Reproducibility/intermittency. Set applicable=true
+only for the first stage with enough evidence to classify the failure. For every later
+stage, set applicable=false and write "Not evaluated after first applicable match." exactly.
+Set first_applicable_match to that first applicable stage. Return all five ordered stages.
 If evidence is missing, explicitly say so rather than inventing it.
 
 Allure evidence follows:\n""" + json.dumps(evidence, ensure_ascii=False)
@@ -241,7 +321,10 @@ def render_markdown(results: List[TriageResult], results_dir: Path) -> str:
                 "### Required evidence sequence",
                 "",
             ])
-            lines.extend(f"{position}. {entry}" for position, entry in enumerate(advice.evidence_sequence, start=1))
+            lines.extend(
+                f"{position}. **{entry.stage}** — {entry.finding}"
+                for position, entry in enumerate(advice.evidence_sequence, start=1)
+            )
             lines.append("")
         else:
             lines.extend([

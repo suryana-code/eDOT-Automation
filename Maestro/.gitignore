@@ -1,7 +1,7 @@
-# macOS
+# File sistem macOS.
 .DS_Store
 
-# Python
+# Artefak Python.
 __pycache__/
 *.py[cod]
 *.pyo
@@ -15,35 +15,35 @@ pip-wheel-metadata/
 build/
 dist/
 
-# Pytest
+# Artefak Pytest.
 .pytest_cache/
 
-# Allure
+# Artefak Allure.
 allure-results/
 allure-report/
 
-# Maestro (local artifacts, recordings, and logs)
+# Artefak lokal Maestro, recording, dan log.
 .maestro/
 recordings/
 maestro-*.log
 *.maestro.log
 maestro-debug.log
 
-# Android / ADB / build artifacts
+# Artefak Android, ADB, dan build.
 *.apk
 adb.log
 
-# IDEs and editors
+# Konfigurasi IDE dan editor.
 .vscode/
 .idea/
 *.iml
 
-# System files
+# File sistem.
 *.log
 *.tmp
 tmp/
 *.swp
 
-# Optional project artifacts (uncomment if you want to ignore)
+# Artefak project opsional; aktifkan jika ingin mengabaikannya.
 # reports/
 # screenshots/

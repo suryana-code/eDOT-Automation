@@ -8,11 +8,11 @@ Project dibagi menjadi dua bagian utama sesuai dengan requirement yang diberikan
 
 ```
 eDOT-Automation
-├── Playwright/   # Web Automation
-└── Maestro/      # Mobile Automation
+├── Playwright/   # Automation Web
+└── Maestro/      # Automation Mobile
 ```
 
-## Combined Allure Report (Local)
+## Allure Report Gabungan (Lokal)
 
 Web dan mobile tetap dapat dijalankan secara individual dari folder framework masing-masing:
 
@@ -38,11 +38,11 @@ make allure-all        # menjalankan seluruh alur, generate, lalu membuka report
 
 Evidence dalam combined report tetap melekat pada test asalnya:
 
-- Playwright failure screenshot berada pada test terkait; setup login failure dapat ditemukan pada `Execution → Set up`.
-- Maestro melampirkan `Maestro Execution Output` dan `Maestro Screen Recording` (`video/mp4`) pada step eksekusi Maestro.
-- Pada Allure `SUITES`, `Playwright` menandai Web automation dan `Maestro` menandai Mobile automation.
+- Playwright failure screenshot berada pada test terkait; setup login failure dapat ditemukan pada `Execution → Set up`
+- Maestro melampirkan `Maestro Execution Output` dan `Maestro Screen Recording` (`video/mp4`) pada step eksekusi Maestro
+- Pada Allure `SUITES`, `Playwright` menandai Web automation dan `Maestro` menandai Mobile automation
 
-Standalone report tetap berada di folder framework masing-masing. Combined report adalah workflow lokal; seluruh `.allure/` merupakan runtime artifact dan tidak di-commit. GitHub Actions yang ada tetap menjalankan dan mempublikasikan report Playwright secara terpisah; mobile CI belum dikonfigurasi.
+Report standalone tetap berada di folder framework masing-masing. Report gabungan adalah workflow lokal; seluruh `.allure/` merupakan runtime artifact dan tidak di-commit. GitHub Actions yang ada tetap menjalankan dan mempublikasikan report Playwright secara terpisah; mobile CI belum dikonfigurasi.
 
 ---
 
@@ -67,17 +67,17 @@ Dokumentasi lengkap dapat dilihat pada:
 
 > `Playwright/README.md`
 
-### 🚀CI/CD & Automation Report
+### 🚀CI/CD dan Automation Report
 
 Project Playwright telah diintegrasikan dengan GitHub Actions sehingga automation akan berjalan secara otomatis setiap kali terdapat perubahan pada branch main.
 
 Workflow yang dijalankan meliputi:
 
-Install seluruh dependency
-Menjalankan Playwright automation secara headless
-Generate Allure Report
-Upload Allure Results sebagai workflow artifact
-Publish Allure Report ke GitHub Pages
+- Menginstal seluruh dependency
+- Menjalankan automation Playwright secara headless
+- Membuat Allure Report
+- Mengunggah Allure Results sebagai workflow artifact
+- Mempublikasikan Allure Report ke GitHub Pages
 
 #### Live Report
 
@@ -97,7 +97,7 @@ Automation akan mencakup skenario:
 - Create Customer
 - Verify Customer
 
-Flow dibuat secara modular agar mudah digunakan kembali (reusable) dan mudah dikembangkan.
+Flow dibuat secara modular agar mudah digunakan kembali dan mudah dikembangkan.
 
 Dokumentasi lengkap dapat dilihat pada:
 
@@ -110,8 +110,8 @@ Dokumentasi lengkap dapat dilihat pada:
 Repository ini dibuat sebagai implementasi dari Take Home Test QA Automation Engineer eDOT dengan fokus pada:
 
 - Manual Test Case Design
-- Web Automation Testing
-- Mobile Automation Testing
+- Automation Testing Web
+- Automation Testing Mobile
 - Reporting
 - Best Practice Automation Framework
 

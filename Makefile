@@ -7,9 +7,7 @@ ALLURE_REPORT := $(ALLURE_DIR)/report
 PLAYWRIGHT_RESULTS := $(ALLURE_DIR)/playwright-results
 MAESTRO_RESULTS := $(ALLURE_DIR)/maestro-results
 
-# Run Web and Mobile suites in parallel.
-# Each framework writes to its own temporary Allure result directory.
-# Results are merged only after both suites finish.
+# Menjalankan Web dan Mobile secara parallel lalu menggabungkan result setelah keduanya selesai
 test-all:
 	@rm -rf "$(ALLURE_DIR)"
 	@mkdir -p "$(ALLURE_RESULTS)" "$(PLAYWRIGHT_RESULTS)" "$(MAESTRO_RESULTS)"
@@ -61,21 +59,18 @@ test-all:
 		exit 1; \
 	fi
 
-# Generate one HTML report from the merged Allure results.
+# Membuat report HTML dari result Allure gabungan
 generate-all:
 	@echo "Generating combined Allure report..."
 	@rm -rf "$(ALLURE_REPORT)"
 	@allure generate "$(ALLURE_RESULTS)" --clean -o "$(ALLURE_REPORT)"
 
-# Open the generated Allure report.
+# Membuka report Allure yang sudah dibuat
 open-all:
 	@echo "Opening combined Allure report..."
 	@allure open "$(ALLURE_REPORT)"
 
-# Run Playwright and Maestro in parallel,
-# merge their Allure results,
-# generate one combined report,
-# then open the report.
+# Menjalankan suite parallel, lalu membuat dan membuka report gabungan
 allure-all:
 	@$(MAKE) test-all; \
 	test_status=$$?; \
@@ -95,6 +90,6 @@ allure-all:
 	fi; \
 	exit $$open_status
 
-# Remove only integrated Allure artifacts.
+# Menghapus artefak Allure untuk eksekusi terintegrasi
 clean-all:
 	rm -rf "$(ALLURE_DIR)"

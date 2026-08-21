@@ -1,4 +1,4 @@
-"""Runtime AI test-data generation with validated, offline-safe fallbacks."""
+"""Pembuatan data test AI pada runtime dengan fallback tervalidasi yang aman untuk offline."""
 
 import json
 import os
@@ -64,7 +64,7 @@ class GeneratedTestData:
 
 
 class AIDataGenerator:
-    """Calls OpenAI only when configured; invalid/unavailable output falls back."""
+    """Memanggil OpenAI hanya saat dikonfigurasi; output invalid/tidak tersedia memakai fallback."""
 
     def __init__(
         self,
@@ -116,7 +116,7 @@ class AIDataGenerator:
                     data=validated.model_dump(), source="ai", attempts=attempt
                 )
             except (requests.RequestException, ValueError, ValidationError, KeyError):
-                # A failure here only selects fallback data; it never changes test assertions.
+                # Kegagalan di sini hanya memilih data fallback; assertion test tidak pernah diubah.
                 continue
 
         return GeneratedTestData(

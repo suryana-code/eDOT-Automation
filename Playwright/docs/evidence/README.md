@@ -1,8 +1,8 @@
-# Execution Evidence
+# Evidence Eksekusi
 
 Folder ini berisi bukti bahwa automation berhasil dijalankan menggunakan Allure Report.
 
-## Files
+## File
 
 - behaviors.jpg
 - overview-fail.jpg

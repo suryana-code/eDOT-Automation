@@ -8,7 +8,7 @@ class CompanyPage(BasePage):
         super().__init__(page)
 
         # =====================================================
-        # TAB 1 - REGISTER COMPANY
+        # TAB 1 - REGISTRASI COMPANY
         # =====================================================
 
         self.btn_add_company = page.get_by_role(
@@ -100,7 +100,7 @@ class CompanyPage(BasePage):
         )
 
         # =====================================================
-        # TAB 2 - REGISTER LEGAL
+        # TAB 2 - REGISTRASI LEGAL
         # =====================================================
 
         self.lbl_register_legal = page.get_by_text(
@@ -113,7 +113,7 @@ class CompanyPage(BasePage):
         )
 
         # =====================================================
-        # TAB 3 - CREATE BRANCH
+        # TAB 3 - MEMBUAT BRANCH
         # =====================================================
 
         self.lbl_create_branch = page.get_by_text(
@@ -238,7 +238,7 @@ class CompanyPage(BasePage):
         )
 
         # =====================================================
-        # DELETE COMPANY
+        # MENGHAPUS COMPANY
         # =====================================================
 
         self.btn_delete = page.get_by_role(
@@ -266,7 +266,7 @@ class CompanyPage(BasePage):
         )
 
         # =====================================================
-        # GLOBAL
+        # LOCATOR GLOBAL
         # =====================================================
 
         self.btn_back = page.get_by_role(
@@ -280,7 +280,7 @@ class CompanyPage(BasePage):
         )
 
     # =====================================================
-    # TAB 1 - REGISTER COMPANY
+    # TAB 1 - REGISTRASI COMPANY
     # =====================================================
 
     def click_add_company(self):
@@ -337,8 +337,7 @@ class CompanyPage(BasePage):
 
         self.txt_company_name.click()
 
-        # The live controlled input clears values set by locator.fill().
-        # Sequential typing dispatches the events the form requires.
+        # Controlled input perlu diketik berurutan agar event form terpanggil
         self.type(
             self.txt_company_name,
             value
@@ -469,7 +468,7 @@ class CompanyPage(BasePage):
         )
 
     # =====================================================
-    # TAB 2 - REGISTER LEGAL
+    # TAB 2 - REGISTRASI LEGAL
     # =====================================================
 
     def verify_register_legal_loaded(self):
@@ -485,7 +484,7 @@ class CompanyPage(BasePage):
         )
 
     # =====================================================
-    # TAB 3 - CREATE BRANCH
+    # TAB 3 - MEMBUAT BRANCH
     # =====================================================
 
     def verify_create_branch_loaded(self):
@@ -592,7 +591,7 @@ class CompanyPage(BasePage):
         )
 
     # =====================================================
-    # COMMON
+    # AKSI UMUM
     # =====================================================
 
     def click_next(self):
@@ -707,6 +706,7 @@ class CompanyPage(BasePage):
             has_text=company_name
         )
 
+        # Tier 2: pastikan company baru tampil sebagai card aktif
         expect(
             card
         ).to_be_visible(
@@ -744,7 +744,7 @@ class CompanyPage(BasePage):
         )
 
     # =====================================================
-    # COMPANY DETAIL
+    # DETAIL COMPANY
     # =====================================================
 
     def open_company_manage(self, company_name):
@@ -826,6 +826,7 @@ class CompanyPage(BasePage):
 
     def verify_company_detail(self, data):
 
+        # Tier 2: cek detail company sesuai data input
         self.expect_value(
             self.txt_company_name,
             data["company_name"]
@@ -866,7 +867,7 @@ class CompanyPage(BasePage):
         )
 
     def cleanup_created_company(self, company_name, base_url):
-        """Delete only the uniquely named company created by the current test run."""
+        """Menghapus hanya company bernama unik yang dibuat oleh eksekusi test saat ini."""
         self.page.goto(
             f"{base_url.rstrip('/')}/companies"
         )
@@ -906,13 +907,11 @@ class CompanyPage(BasePage):
             company_name
         )
 
-        # The delete request itself is proven by the success toast above.  The
-        # list assertion in verify_company_deleted remains advisory until the
-        # known product issue is resolved.
+        # Toast membuktikan request delete diterima; pengecekan list masih advisory
         return True
 
     # =====================================================
-    # DELETE COMPANY
+    # MENGHAPUS COMPANY
     # =====================================================
 
     def delete_company(self):
@@ -948,7 +947,7 @@ class CompanyPage(BasePage):
             self.btn_add_company
         )
 
-        # Refresh untuk memastikan mendapatkan data terbaru
+        # Refresh list setelah delete untuk membaca data terbaru
         self.page.reload(
             wait_until="networkidle"
         )
@@ -970,18 +969,10 @@ class CompanyPage(BasePage):
         company_count = company_cards.count()
 
         # ==========================================================
-        # TEMPORARY WORKAROUND
+        # WORKAROUND SEMENTARA
         # ==========================================================
-        # Known developer issue:
-        # Company yang sudah berhasil di-delete masih dapat muncul
-        # pada Companies list.
-        #
-        # Untuk sementara verification ini TIDAK dibuat sebagai
-        # hard assertion agar tidak menyebabkan automation FAIL.
-        #
-        # TODO:
-        # Setelah developer memperbaiki issue tersebut,
-        # uncomment assertion di bawah.
+        # Workaround product issue: card bisa tetap tampil setelah delete
+        # Aktifkan assertion di bawah setelah issue diperbaiki
         # ==========================================================
 
         if company_count == 0:
@@ -1005,7 +996,7 @@ class CompanyPage(BasePage):
             )
 
         # ==========================================================
-        # ENABLE THIS AFTER DEVELOPER FIX
+        # AKTIFKAN SETELAH PERBAIKAN DEVELOPER
         # ==========================================================
         # expect(
         #     company_cards

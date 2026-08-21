@@ -8,8 +8,8 @@ Dokumen ini menjelaskan fitur AI yang benar-benar diimplementasikan pada project
 
 `utils/ai_helper.py` menghasilkan test data bisnis bergaya Indonesia yang tervalidasi. Data yang didukung adalah:
 
-- **Data company:** nama company, email, nomor ponsel Indonesia, alamat jalan, industry, company type, language, cascade alamat yang didukung aplikasi, postal code, dan branch name.
-- **Data customer:** nama, contact, alamat jalan, dan nomor ponsel Indonesia. Ini adalah contract tervalidasi untuk pekerjaan mobile di masa mendatang; belum digunakan oleh test Playwright saat ini.
+- **Data company:** nama company, email, nomor ponsel Indonesia, alamat jalan, industry, company type, language, cascade alamat yang didukung aplikasi, postal code, dan branch name
+- **Data customer:** nama, contact, alamat jalan, dan nomor ponsel Indonesia. Ini adalah contract tervalidasi untuk pekerjaan mobile di masa mendatang; belum digunakan oleh test Playwright saat ini
 
 Alur company saat ini memanggil `CompanyData.generate_with_metadata()` di `tests/test_company.py`. Data company yang dikembalikan adalah data yang sama dengan yang dikirim ke registration wizard dan digunakan oleh assertion detail yang sudah ada.
 
@@ -19,18 +19,18 @@ Jika `EDOT_AI_API_KEY` tersedia, `AIDataGenerator` mengirim request ke OpenAI Re
 
 Structured JSON diminta menggunakan strict JSON Schema yang berasal dari model Pydantic:
 
-- `CompanyTestData` mewajibkan nilai eSuite yang diuji, termasuk location cascade yang didukung dan postal code `40286`.
-- `CustomerTestData` mewajibkan nama, contact, alamat, serta nomor telepon yang dimulai dengan `628`.
+- `CompanyTestData` mewajibkan nilai eSuite yang diuji, termasuk location cascade yang didukung dan postal code `40286`
+- `CustomerTestData` mewajibkan nama, contact, alamat, serta nomor telepon yang dimulai dengan `628`
 
 Respons divalidasi kembali secara lokal menggunakan `model_validate`. Field tambahan dilarang. JSON invalid, provider error, output text yang tidak tersedia, dan schema-validation failure diperlakukan sebagai percobaan gagal dan tidak diteruskan ke test.
 
-## Exact Prompt yang Digunakan
+## Prompt Persis yang Digunakan
 
 Kedua implementasi mengirim satu string melalui field request `input`. Tidak ada system prompt atau field `instructions` terpisah pada implementation saat ini. Structured-output JSON Schema dikirim melalui field `text.format.schema`, bukan sebagai bagian dari text prompt di bawah.
 
-### AI Test Data Generation
+### Pembuatan Test Data dengan AI
 
-#### Company test data
+#### Data test company
 
 Template `input` berikut dikembalikan oleh `AIDataGenerator._company_prompt(run_id)`:
 
@@ -47,7 +47,7 @@ The street address must be a realistic single-line Bandung address. Do not add c
 
 `{run_id}` diisi saat runtime dari `EDOT_TEST_RUN_ID`; jika environment variable tersebut tidak tersedia, nilainya adalah delapan karakter unik berbasis UUID yang dibuat oleh `AIDataGenerator`.
 
-#### Customer test data
+#### Data test customer
 
 Template `input` berikut dikembalikan oleh `AIDataGenerator._customer_prompt(run_id)`:
 
@@ -70,10 +70,12 @@ You must not propose changes to assertions, expected values, test code, test exe
 bug trackers, or Allure results. Do not state that a test passed.
 
 Classify the existing failure as exactly one of: Script/Environment Defect,
-Product Bug, Flaky. Analyse evidence in this exact order and return five concise
-evidence_sequence entries with these labels: (1) Exception/timeout/assertion,
+Product Bug, Flaky. Evaluate evidence in this exact order: (1) Exception/timeout/assertion,
 (2) Locator correctness and uniqueness, (3) Previous steps and preconditions,
-(4) Expected-value correctness, (5) Reproducibility/intermittency.
+(4) Expected-value correctness, (5) Reproducibility/intermittency. Set applicable=true
+only for the first stage with enough evidence to classify the failure. For every later
+stage, set applicable=false and write "Not evaluated after first applicable match.".
+Set first_applicable_match to that first applicable stage. Return all five ordered stages.
 If evidence is missing, explicitly say so rather than inventing it.
 
 Allure evidence follows:
@@ -92,7 +94,7 @@ Setelah text di atas, implementation menambahkan `json.dumps(evidence, ensure_as
 }
 ```
 
-`MAX_ATTACHMENT_CHARS` bernilai `4_000`. Isi attachment text/JSON telah dibatasi sebelum menjadi bagian dari `failed_test.attachments`; attachment biner digantikan dengan keterangan bahwa isinya tidak dimasukkan ke AI prompt.
+`MAX_ATTACHMENT_CHARS` bernilai `4_000`. Script mengumpulkan attachment level result dan attachment pada nested Allure step. Isi attachment text/JSON telah dibatasi sebelum menjadi bagian dari `failed_test.attachments`; attachment biner digantikan dengan keterangan bahwa isinya tidak dimasukkan ke AI prompt.
 
 ### Retry dan deterministic fallback
 
@@ -125,7 +127,7 @@ Hanya Allure result berstatus `failed` atau `broken` yang dimasukkan. Untuk seti
 - nama test, full name, dan status;
 - error message dan trace;
 - Allure step yang tercatat; serta
-- metadata attachment. Isi attachment text dan JSON dibatasi hingga 4.000 karakter; isi attachment biner tidak dikirim ke AI.
+- metadata attachment. Isi attachment text dan JSON dibatasi hingga 4.000 karakter; isi attachment biner tidak dikirim ke AI
 
 Jika AI tersedia, evidence dianalisa dalam urutan berikut:
 
@@ -134,6 +136,8 @@ Jika AI tersedia, evidence dianalisa dalam urutan berikut:
 3. Previous steps dan preconditions.
 4. Expected-value correctness.
 5. Reproducibility atau intermittent behaviour.
+
+Output AI divalidasi ketat: kelima stage wajib ada dengan urutan tersebut, `first_applicable_match` wajib menunjuk stage pertama dengan `applicable=true`, dan semua stage setelahnya wajib `applicable=false` dengan finding `Not evaluated after first applicable match.`. Output yang melanggar urutan atau tetap mengevaluasi stage setelah first match ditolak, lalu request diulang sesuai batas retry.
 
 ### Verdict dan report
 
@@ -155,12 +159,12 @@ Jika `allure-results` tidak ada atau tidak berisi result `failed`/`broken`, repo
 
 Kedua fitur AI sengaja dibatasi:
 
-- AI hanya menyediakan test data atau teks triage advisory.
-- AI tidak mengubah test code, Page Object, assertion, expected value, atau source file.
-- AI tidak dapat skip, xfail, memicu retry terhadap test Playwright, atau menandai Playwright test sebagai passed.
-- Playwright dan pytest tetap menjadi sumber kebenaran untuk PASS/FAIL.
-- Triage script tidak menjalankan pytest, mengubah Allure result, membuat bug, atau menutup bug.
-- Ketika AI tidak tersedia, test tetap berjalan dengan fallback tervalidasi dan triage melaporkan advisory tidak tersedia tanpa menyembunyikan failure.
+- AI hanya menyediakan test data atau teks triage advisory
+- AI tidak mengubah test code, Page Object, assertion, expected value, atau source file
+- AI tidak dapat skip, xfail, memicu retry terhadap test Playwright, atau menandai Playwright test sebagai passed
+- Playwright dan pytest tetap menjadi sumber kebenaran untuk PASS/FAIL
+- Triage script tidak menjalankan pytest, mengubah Allure result, membuat bug, atau menutup bug
+- Ketika AI tidak tersedia, test tetap berjalan dengan fallback tervalidasi dan triage melaporkan advisory tidak tersedia tanpa menyembunyikan failure
 
 ## 4. Konfigurasi
 
@@ -173,10 +177,10 @@ EDOT_TEST_DATA_SEED=20260819
 EDOT_TEST_RUN_ID=optional-repeatable-run-id
 ```
 
-- `EDOT_AI_API_KEY` mengaktifkan request untuk data generation dan failure triage.
-- `EDOT_AI_MODEL` mengganti model default.
-- `EDOT_TEST_DATA_SEED` mengatur seed Faker fallback (default: `20260819`).
-- `EDOT_TEST_RUN_ID` membuat nilai fallback dapat direproduksi. Jika tidak diatur, generator membuat run ID unik.
+- `EDOT_AI_API_KEY` mengaktifkan request untuk data generation dan failure triage
+- `EDOT_AI_MODEL` mengganti model default
+- `EDOT_TEST_DATA_SEED` mengatur seed Faker fallback (default: `20260819`)
+- `EDOT_TEST_RUN_ID` membuat nilai fallback dapat direproduksi. Jika tidak diatur, generator membuat run ID unik
 
 ## 5. Menjalankan
 
@@ -212,8 +216,8 @@ make triage
 
 ## 7. Keterbatasan
 
-- Failure triage belum dirangkai otomatis ke command test; `make triage` harus dijalankan setelah Allure result tersedia.
-- AI triage berbasis evidence dan advisory. Script tidak menjalankan ulang test atau menginspeksi aplikasi live, sehingga proposalnya harus direview manusia.
-- Attachment Allure biner diidentifikasi, tetapi isinya tidak dimasukkan ke prompt AI.
-- Company schema sengaja membatasi field seperti industry, company type, dan location value pada cascade yang saat ini didukung oleh application flow yang diuji.
-- Customer generation sudah diimplementasikan, tetapi belum digunakan oleh Playwright suite.
+- Failure triage belum dirangkai otomatis ke command test; `make triage` harus dijalankan setelah Allure result tersedia
+- AI triage berbasis evidence dan advisory. Script tidak menjalankan ulang test atau menginspeksi aplikasi live, sehingga proposalnya harus direview manusia
+- Attachment Allure biner diidentifikasi, tetapi isinya tidak dimasukkan ke prompt AI
+- Company schema sengaja membatasi field seperti industry, company type, dan location value pada cascade yang saat ini didukung oleh application flow yang diuji
+- Customer generation sudah diimplementasikan, tetapi belum digunakan oleh Playwright suite

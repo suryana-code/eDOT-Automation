@@ -77,8 +77,8 @@ class MaestroRecording:
 
 def run_maestro(env):
     """
-    Execute the main Maestro flow and explicitly pass
-    required environment variables to Maestro.
+    Menjalankan flow utama Maestro dan meneruskan environment variable
+    yang dibutuhkan secara eksplisit ke Maestro.
     """
 
     run_id = uuid4().hex
@@ -174,7 +174,7 @@ def _prepare_recording(
 
 
 def _video_metadata(video_path: Optional[Path]) -> Optional[Tuple[int, int]]:
-    """Return video dimensions only when ffprobe can inspect a valid MP4."""
+    """Mengembalikan dimensi video hanya jika ffprobe dapat memeriksa MP4 yang valid."""
     if not video_path or not shutil.which("ffprobe"):
         return None
 
@@ -209,7 +209,7 @@ def _video_metadata(video_path: Optional[Path]) -> Optional[Tuple[int, int]]:
 
 
 def _compress_video(original_video_path: Path, compressed_video_path: Path) -> bool:
-    """Compress as H.264 without scaling, orientation changes, or frame-rate changes."""
+    """Mengompresi ke H.264 tanpa mengubah skala, orientasi, atau frame rate."""
     if not shutil.which("ffmpeg") or not shutil.which("ffprobe"):
         return False
 

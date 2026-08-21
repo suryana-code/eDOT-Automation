@@ -1,65 +1,65 @@
-# Maestro Mobile Automation
+# Automation Mobile Maestro
 
-## Overview
+## Gambaran Umum
 
-This repository contains a Maestro mobile test suite for the eWork SFA application.
-The test covers:
+Repository ini berisi suite test mobile Maestro untuk aplikasi eWork SFA.
+Test mencakup:
 
-- Login and dashboard verification
-- Customer creation with tier 2 validation
-- Customer verification after creation
+- Login dan verifikasi dashboard
+- Pembuatan customer dengan validasi Tier 2
+- Verifikasi customer setelah dibuat
 
-## Setup and Running the Test
+## Setup dan Menjalankan Test
 
-### Prerequisites
+### Prasyarat
 
-- Maestro CLI installed and available via `maestro --version`
-- A connected Android device visible with `adb devices`
-- The app package `id.edot.ework` installed on the target device
-- Python dependencies installed with `pip install -r requirements.txt`
-- Allure CLI only when using `make allure`
+- Maestro CLI terinstal dan tersedia melalui `maestro --version`
+- Device Android yang terhubung terlihat melalui `adb devices`
+- Package aplikasi `id.edot.ework` terinstal pada device target
+- Dependency Python diinstal dengan `pip install -r requirements.txt`
+- Allure CLI hanya diperlukan saat menggunakan `make allure`
 
-### Environment variables
+### Environment variable
 
-Create a shared local `.env` file in the repository root (`../.env` when running from `Maestro/`) with the credentials and application configuration required by the login flow:
+Buat file `.env` lokal bersama di root repository (`../.env` saat dijalankan dari `Maestro/`) dengan credential dan konfigurasi aplikasi yang diperlukan oleh flow login:
 
 - `APP_ID` (example: `id.edot.ework`)
 - `COMPANY_ID`
 - `USER_NAME`
 - `PASSWORD`
 
-`pytest/conftest.py` explicitly loads the repository-root `.env` through `python-dotenv`. Do not place credentials in YAML commands or commit local credentials.
+`pytest/conftest.py` secara eksplisit memuat `.env` root repository melalui `python-dotenv`. Jangan menaruh credential pada command YAML atau melakukan commit credential lokal.
 
-### Take Home Test fallback account
+### Fallback account Take Home Test
 
-The current Maestro flow uses the fallback company/account provided in the Take Home Test rather than the company created by the Web flow: Company ID `5049209` and username `salesmanqaauto`. The password is kept only in the local root `.env` and is intentionally not documented here. This fallback may be expired, as noted in the assignment.
+Flow Maestro saat ini menggunakan fallback company/account yang disediakan dalam Take Home Test, bukan company yang dibuat oleh flow Web: Company ID `5049209` dan username `salesmanqaauto`. Password hanya disimpan pada `.env` lokal di root dan sengaja tidak didokumentasikan di sini. Sesuai catatan assignment, fallback ini dapat kedaluwarsa.
 
-### Run via Makefile
+### Menjalankan melalui Makefile
 
 ```bash
 make test
 ```
 
-Run this command from the `Maestro/` directory. It is equivalent to:
+Jalankan command ini dari direktori `Maestro/`. Command tersebut setara dengan:
 
 ```bash
 pytest -v -s pytest/test_mobile.py
 ```
 
-### Combined Web + Mobile Allure Report
+### Allure Report Web + Mobile Gabungan
 
-To run Playwright and Maestro serially into one local Allure result directory, run these commands from the repository root:
+Untuk menjalankan Playwright dan Maestro secara parallel ke satu direktori result Allure lokal, jalankan command berikut dari root repository:
 
 ```bash
 make test-all
 make generate-all
 ```
 
-The shared results are written to `../allure-results/` and the combined HTML report to `../allure-report/`. This does not change the individual Maestro commands above or the existing Playwright-only CI workflow.
+`make test-all` menulis result sementara masing-masing framework ke `.allure/playwright-results/` dan `.allure/maestro-results/`, lalu menggabungkan eksekusi saat ini ke `.allure/results/`. `make generate-all` membuat report HTML gabungan di `.allure/report/`. Hal ini tidak mengubah command Maestro individual di atas atau workflow CI Playwright yang sudah ada.
 
-### Run a Maestro Flow Directly for Login Debugging
+### Menjalankan Flow Maestro Langsung untuk Debugging Login
 
-The complete customer scenario should be run through Pytest because Pytest creates its dynamic customer data. To debug the reusable login flow directly, export the shared root `.env` values first:
+Skenario customer lengkap harus dijalankan melalui Pytest karena Pytest membuat data customer dinamis. Untuk debugging flow login reusable secara langsung, export terlebih dahulu nilai dari `.env` root bersama:
 
 ```bash
 set -a
@@ -68,24 +68,24 @@ set +a
 maestro test -p android flows/login/login.yaml
 ```
 
-### Generate and Open Allure Report
+### Membuat dan Membuka Allure Report
 
 ```bash
 make allure
 ```
 
-`pytest.ini` writes Allure results to `allure-results/`; `make allure` runs the same Pytest wrapper and opens those results with `allure serve`.
+`pytest.ini` menulis result Allure ke `allure-results/`; `make allure` menjalankan wrapper Pytest yang sama dan membuka result tersebut dengan `allure serve`.
 
-If the Allure CLI is not installed, run `make test` and install Allure before opening `allure-results/`.
+Jika Allure CLI belum terinstal, jalankan `make test` dan instal Allure sebelum membuka `allure-results/`.
 
-### Notes
+### Catatan
 
-- The repository-root `.env` provides credentials and application configuration for the Pytest wrapper.
-- Faker in `pytest/conftest.py` creates dynamic customer data for each test execution.
-- Pytest is the wrapper/orchestrator: it loads `.env`, prepares dynamic data, invokes Maestro, and attaches the generated data and Maestro execution log to Allure.
-- Maestro YAML files under `flows/` contain the mobile automation steps.
-- Login is extracted to a shared flow under `flows/login/login.yaml`.
-- Customer verification is performed on **New Customer List** because the application does not expose a customer detail page after registration. The flow verifies the runtime outlet name and street address shown on the created customer card. Customer ID is application-generated, and status is not asserted because the same status can appear on other cards without a card-level selector.
-- Maestro uses native `startRecording` and `stopRecording` in the main flow, covering Login and Create Customer. Each Pytest run writes its output and MP4 recording to a unique subdirectory under `recordings/`.
-- The Pytest wrapper attaches `Maestro Execution Output` as `text/plain` and `Maestro Screen Recording` as `video/mp4` inside the `Run Maestro main flow` Allure step. The video is intended to play inline in Allure-supported browsers.
-- When `ffmpeg` and `ffprobe` are available, the wrapper may attach an H.264 compressed MP4 only after confirming that its width and height match the original recording. Otherwise, it attaches the original MP4.
+- `.env` root repository menyediakan credential dan konfigurasi aplikasi untuk wrapper Pytest
+- Faker pada `pytest/conftest.py` membuat data customer dinamis untuk setiap eksekusi test
+- Pytest memuat `.env`, menyiapkan data, memanggil Maestro, dan melampirkan data serta log ke Allure
+- File YAML di bawah `flows/` berisi langkah automation mobile
+- Login dipisahkan ke flow bersama pada `flows/login/login.yaml`
+- Verifikasi customer dilakukan pada **New Customer List** karena tidak ada halaman detail setelah registrasi. Flow hanya memverifikasi `OUTLET_NAME`; Address tidak diassert karena tidak reliable pada UI/card yang tersedia
+- `startRecording` dan `stopRecording` merekam Login dan Create Customer ke subdirektori unik di `recordings/`
+- Wrapper melampirkan output `text/plain` dan recording `video/mp4` pada step Allure `Run Maestro main flow`
+- Jika tersedia, `ffmpeg`/`ffprobe` hanya memakai MP4 H.264 terkompresi dengan resolusi yang sama; jika tidak, MP4 asli dipakai

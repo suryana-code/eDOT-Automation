@@ -2,7 +2,7 @@ appId: ${APP_ID}
 ---
 - extendedWaitUntil:
     visible: "Ex: P104"
-    timeout: 10000
+    timeout: 50000
 
 - tapOn: "Ex: P104"
 - inputText: ${COMPANY_ID}

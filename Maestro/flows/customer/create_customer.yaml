@@ -10,7 +10,7 @@ appId: ${APP_ID}
 
 - tapOn: "New Customer Registration"
 
-# Basic Information
+# Informasi dasar customer
 - tapOn:
     id: noo_registration_input_outlet_name
 
@@ -34,13 +34,13 @@ appId: ${APP_ID}
 - swipe:
     direction: UP
 
-# Channel
+# Pilihan channel customer
 - tapOn:
     id: noo_registration_input_channel
 
 - tapOn: ${CHANNEL}
 
-# Outlet Type
+# Pilihan tipe outlet
 - tapOn:
     id: noo_registration_input_outlet_type
 
@@ -54,7 +54,7 @@ appId: ${APP_ID}
 
 - tapOn: "Continue"
 
-# Store Information
+# Informasi toko
 - extendedWaitUntil:
     visible: "Store Information"
     timeout: 10000
@@ -72,7 +72,7 @@ appId: ${APP_ID}
 - swipe:
     direction: UP
 
-# Location
+# Cascade lokasi customer
 - tapOn: "Choose Province"
 - tapOn: ${PROVINCE}
 
@@ -87,7 +87,7 @@ appId: ${APP_ID}
 
 - tapOn: "Continue"
 
-# Documents
+# Dokumen customer
 - extendedWaitUntil:
     visible: "KTP *"
     timeout: 10000
@@ -102,31 +102,31 @@ appId: ${APP_ID}
 
 - tapOn: "Submit"
 
-# Approval Signature
+# Tanda tangan persetujuan
 - tapOn:
     id: "signature_view"
 
-# Point-based swipes are the last resort here: the signature pad requires a
-# handwritten gesture and does not expose an action-level selector for a stroke.
-# Signature stroke 1
+# Swipe berbasis koordinat adalah pilihan terakhir: pad tanda tangan memerlukan
+# gestur tulisan tangan dan tidak menyediakan selector untuk membuat goresan.
+# Goresan tanda tangan 1
 - swipe:
     start: 20%,76%
     end: 35%,70%
     duration: 400
 
-# Signature stroke 2
+# Goresan tanda tangan 2
 - swipe:
     start: 35%,70%
     end: 45%,79%
     duration: 400
 
-# Signature stroke 3
+# Goresan tanda tangan 3
 - swipe:
     start: 45%,79%
     end: 55%,69%
     duration: 400
 
-# Signature stroke 4
+# Goresan tanda tangan 4
 - swipe:
     start: 55%,69%
     end: 70%,77%
@@ -140,7 +140,7 @@ appId: ${APP_ID}
 
 - tapOn: "Yes"
 
-# Tier 2 - verify creation outcome
+# Tier 2: cek notifikasi customer berhasil dibuat
 - extendedWaitUntil:
     visible: "Data Saved Successfully"
     timeout: 15000

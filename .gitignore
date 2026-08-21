@@ -1,9 +1,9 @@
 .DS_Store
 
-# Local runtime configuration. Keep the template version-controlled.
+# Konfigurasi runtime lokal. Template tetap dikontrol melalui version control.
 .env
 .env.*
 !.env.example
 
-# Combined local Allure artifacts.
+# Artefak Allure gabungan untuk eksekusi lokal.
 /.allure/

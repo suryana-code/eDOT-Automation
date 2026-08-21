@@ -7,7 +7,7 @@ class BasePage:
         self.page = page
 
     # =====================================================
-    # Common Action
+    # Aksi umum yang digunakan kembali oleh Page Object.
 
     def open(self, url):
         self.page.goto(url)
@@ -25,7 +25,7 @@ class BasePage:
         return locator.inner_text()
 
     # =====================================================
-    # Assertion
+    # Helper assertion berbasis Playwright expect.
 
     def expect_visible(self, locator):
         expect(locator).to_be_visible()

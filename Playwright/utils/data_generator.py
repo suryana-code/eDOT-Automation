@@ -9,7 +9,7 @@ class CompanyData:
 
     @staticmethod
     def generate() -> dict:
-        """Backward-compatible company data entrypoint for Playwright tests."""
+        """Entry point data company yang kompatibel dengan test Playwright sebelumnya."""
         return CompanyData.generate_with_metadata().data
 
     @staticmethod
@@ -18,7 +18,7 @@ class CompanyData:
 
 
 class CustomerData:
-    """Validated customer data contract reserved for the later Maestro suite."""
+    """Contract data customer tervalidasi yang disiapkan untuk suite Maestro berikutnya."""
 
     @staticmethod
     def generate_with_metadata() -> GeneratedTestData:
@@ -26,7 +26,7 @@ class CustomerData:
 
 
 def attach_generated_company_data(generated_data: GeneratedTestData) -> None:
-    """Attach exactly the company data that the Playwright test will submit."""
+    """Melampirkan data company yang tepat akan dikirim oleh test Playwright."""
     allure.attach(
         json.dumps(
             {

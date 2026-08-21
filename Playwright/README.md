@@ -6,9 +6,9 @@ Framework dibangun menggunakan pendekatan Page Object Model (POM), session authe
 
 ## Tujuan Project
 
-- Memvalidasi alur `register company` di aplikasi eDOT.
-- Mengecek bahwa company baru dapat dibuat, detailnya ditampilkan benar, dan cleanup delete dijalankan kembali.
-- Menjaga test environment bersih dengan cleanup data setelah test selesai.
+- Memvalidasi alur `register company` di aplikasi eDOT
+- Mengecek bahwa company baru dapat dibuat, detailnya ditampilkan benar, dan cleanup delete dijalankan kembali
+- Menjaga test environment bersih dengan cleanup data setelah test selesai
 
 ## Lingkup Test
 
@@ -89,25 +89,25 @@ EDOT_TEST_RUN_ID=optional-repeatable-run-id
 
 ## Menjalankan Test
 
-- Run semua test headless:
+- Jalankan semua test headless:
 
 ```bash
 make test
 ```
 
-- Run test dengan browser tampil:
+- Jalankan test dengan browser tampil:
 
 ```bash
 make headed
 ```
 
-- Run test dan lihat Allure report:
+- Jalankan test dan lihat Allure report:
 
 ```bash
 make allure
 ```
 
-- Run test headed dan Allure report:
+- Jalankan test mode headed dan Allure report:
 
 ```bash
 make allure-headed
@@ -121,7 +121,7 @@ make test-all
 make generate-all
 ```
 
-Hasil combined berada pada `../allure-results/` dan `../allure-report/`. Command Playwright individual di atas tetap memakai folder report lokal `Playwright/`.
+Hasil gabungan berada pada `.allure/results/` dan `.allure/report/` di root repository. Command Playwright individual di atas tetap memakai folder report lokal `Playwright/`.
 
 - Buat laporan failure triage dari hasil Allure yang sudah ada (tidak menjalankan test dan tidak mengubah hasil test):
 
@@ -146,15 +146,15 @@ make clean
 
 ## Cara Kerja Automation
 
-- `conftest.py` memuat env dan menyediakan fixture `config`, `storage_state`, serta `authenticated_page`.
-- `storage_state` menyimpan session login Playwright di `auth/storage_state.json` agar login tidak dilakukan berulang.
-- `authenticated_page` membuka browser dengan storage state dan membuka `base_url`.
-- Jika test gagal pada execution (`call`) dan menggunakan fixture `authenticated_page`, `pytest_runtest_makereport` menyimpan full-page screenshot ke `screenshots/<nama_test>.png` dan melampirkannya ke Allure.
-- Jika login gagal saat fixture `storage_state` dibuat, screenshot disimpan ke `screenshots/storage_state_login_failure.png` dan dilampirkan ke Allure sebagai `Login Setup Failure Screenshot`. Karena failure terjadi pada fixture setup sebelum test body berjalan, attachment dapat ditemukan pada Allure melalui `Test → Execution → Set up → Login Setup Failure Screenshot`.
-- `company_page.py` menggunakan Page Object Model untuk memisahkan locator dan aksi halaman.
-- `data_generator.py` menggunakan AI pada runtime bila `EDOT_AI_API_KEY` tersedia. Output divalidasi schema; bila key tidak tersedia, provider gagal, atau output invalid setelah dua percobaan, generator memakai fallback Faker deterministik berdasarkan `EDOT_TEST_DATA_SEED`; `EDOT_TEST_RUN_ID` dapat diset untuk membuat ulang data yang sama. Bila tidak diset, run identifier dibuat unik agar company dari run sebelumnya tidak tertarget. Data yang dipakai test dilampirkan ke Allure sebagai `Actual Company Test Data`.
-- `CustomerData` di `utils/data_generator.py` menyediakan contract AI/fallback tervalidasi (name, contact, address, phone) untuk integrasi Maestro pada tahap berikutnya; suite Maestro belum diubah dalam scope ini.
-- `utils/failure_triage.py` dijalankan setelah suite untuk membaca `allure-results/*-result.json` secara read-only. AI hanya memberi proposal verdict (`Script/Environment Defect`, `Product Bug`, atau `Flaky`) untuk human review. Ia tidak dapat mengubah assertion, expected value, status test, source code, maupun membuat/menutup bug. Analisa mengikuti urutan: exception, locator, precondition, expected value, lalu reproducibility.
+- `conftest.py` memuat env dan menyediakan fixture `config`, `storage_state`, serta `authenticated_page`
+- `storage_state` menyimpan session login Playwright di `auth/storage_state.json` agar login tidak dilakukan berulang
+- `authenticated_page` membuka browser dengan storage state dan membuka `base_url`
+- Jika test gagal pada execution (`call`) dan menggunakan fixture `authenticated_page`, `pytest_runtest_makereport` menyimpan full-page screenshot ke `screenshots/<nama_test>.png` dan melampirkannya ke Allure
+- Jika login gagal saat fixture `storage_state` dibuat, screenshot disimpan ke `screenshots/storage_state_login_failure.png` dan dilampirkan ke Allure sebagai `Login Setup Failure Screenshot`. Karena failure terjadi pada fixture setup sebelum test body berjalan, attachment dapat ditemukan pada Allure melalui `Test → Execution → Set up → Login Setup Failure Screenshot`
+- `company_page.py` menggunakan Page Object Model untuk memisahkan locator dan aksi halaman
+- `data_generator.py` menggunakan AI pada runtime bila `EDOT_AI_API_KEY` tersedia. Output divalidasi schema; bila key tidak tersedia, provider gagal, atau output invalid setelah dua percobaan, generator memakai fallback Faker deterministik berdasarkan `EDOT_TEST_DATA_SEED`; `EDOT_TEST_RUN_ID` dapat diset untuk membuat ulang data yang sama. Bila tidak diset, run identifier dibuat unik agar company dari run sebelumnya tidak tertarget. Data yang dipakai test dilampirkan ke Allure sebagai `Actual Company Test Data`
+- `CustomerData` di `utils/data_generator.py` menyediakan contract AI/fallback tervalidasi (name, contact, address, phone) untuk integrasi Maestro pada tahap berikutnya; suite Maestro belum diubah dalam cakupan ini
+- `utils/failure_triage.py` dijalankan setelah suite untuk membaca `allure-results/*-result.json` secara read-only. AI hanya memberi proposal verdict (`Script/Environment Defect`, `Product Bug`, atau `Flaky`) untuk human review. Ia tidak dapat mengubah assertion, expected value, status test, source code, maupun membuat/menutup bug. Analisa mengikuti urutan: exception, locator, precondition, expected value, lalu reproducibility
 
 ## Test Case Utama
 
@@ -166,20 +166,20 @@ make clean
   - membuka halaman detail dan memverifikasi Tier 2 data company, termasuk Postal Code
   - menjalankan cleanup delete untuk company yang dibuat
 
-## Known Product Issue — Company Deletion
+## Known Product Issue — Penghapusan Company
 
-**Expected behavior:** company yang sudah dihapus tidak lagi muncul pada **Companies** list setelah halaman di-refresh/reload.
+**Perilaku yang diharapkan:** company yang sudah dihapus tidak lagi muncul pada **Companies** list setelah halaman di-refresh/reload.
 
-**Actual behavior:** aplikasi menampilkan success toast untuk delete, tetapi company masih dapat muncul pada **Companies** list setelah refresh/reload. Entry yang masih tampil tersebut dapat membuka data detail `null`.
+**Perilaku aktual:** aplikasi menampilkan success toast untuk delete, tetapi company masih dapat muncul pada **Companies** list setelah refresh/reload. Entry yang masih tampil tersebut dapat membuka data detail `null`.
 
 Temuan ini didokumentasikan sebagai `BUG-001` pada [`finding bug.md`](finding%20bug.md). Automation tetap menjalankan delete dan reload list, tetapi menggunakan workaround sementara agar known product issue ini tidak menghentikan execution flow lainnya. Dengan demikian, suite saat ini **tidak mengklaim** bahwa company sudah benar-benar hilang dari list; hard assertion harus diaktifkan kembali setelah issue product diperbaiki.
 
 ## Asumsi dan Batasan
 
-- Aplikasi eDOT accessible dari `BASE_URL`.
-- Credential yang dipakai valid dan dapat login.
-- API/backend tidak mengalami downtime saat test dijalankan.
-- Test ini dibuat sebagai sanity/functional smoke test sederhana.
+- Aplikasi eDOT accessible dari `BASE_URL`
+- Credential yang dipakai valid dan dapat login
+- API/backend tidak mengalami downtime saat test dijalankan
+- Test ini dibuat sebagai sanity/functional smoke test sederhana
 
 ## Cara Menambah Test Baru
 
@@ -190,12 +190,12 @@ Temuan ini didokumentasikan sebagai `BUG-001` pada [`finding bug.md`](finding%20
 
 ## Reporting
 
-- Report Allure dihasilkan ke folder `allure-results/`.
-- Bila `allure` tersedia, perintah `make allure` atau `make allure-headed` akan membuka report di browser.
-- Folder `allure-results/` dan `allure-report/` tidak disimpan di repository karena merupakan artefak hasil eksekusi.
-- Screenshot failure juga tersedia secara lokal pada folder `screenshots/`.
-- Untuk failure pada test execution (`call`), buka test yang gagal di Allure lalu periksa attachment pada execution test tersebut.
-- Untuk failure login saat pembuatan `storage_state`, buka test yang terdampak melalui `Allure → Test → Execution → Set up → Login Setup Failure Screenshot`. Attachment setup ini tidak harus muncul pada attachment execution/call utama.
+- Report Allure dihasilkan ke folder `allure-results/`
+- Bila `allure` tersedia, perintah `make allure` atau `make allure-headed` akan membuka report di browser
+- Folder `allure-results/` dan `allure-report/` tidak disimpan di repository karena merupakan artefak hasil eksekusi
+- Screenshot failure juga tersedia secara lokal pada folder `screenshots/`
+- Untuk failure pada test execution (`call`), buka test yang gagal di Allure lalu periksa attachment pada execution test tersebut
+- Untuk failure login saat pembuatan `storage_state`, buka test yang terdampak melalui `Allure → Test → Execution → Set up → Login Setup Failure Screenshot`. Attachment setup ini tidak harus muncul pada attachment execution/call utama
 - Evidence hasil eksekusi (Allure Report) dapat dilihat pada folder:
 
 ```
@@ -226,7 +226,7 @@ yang berisi screenshot hasil execution sebagai referensi reviewer.
 
 ## Catatan Tambahan
 
-- Folder `auth/storage_state.json`, `screenshots/`, `allure-results/`, dan `allure-report/` diabaikan melalui `.gitignore` karena merupakan file runtime.
-- Evidence hasil execution disimpan pada folder `docs/evidence/`.
-- Jika terdapat perubahan UI atau locator, cukup lakukan pembaruan pada Page Object tanpa mengubah test case.
-- Repository ini difokuskan pada implementasi automation sesuai requirement Take Home Test QA Automation Engineer eDOT.
+- Folder `auth/storage_state.json`, `screenshots/`, `allure-results/`, dan `allure-report/` diabaikan melalui `.gitignore` karena merupakan file runtime
+- Evidence hasil execution disimpan pada folder `docs/evidence/`
+- Jika terdapat perubahan UI atau locator, cukup lakukan pembaruan pada Page Object tanpa mengubah test case
+- Repository ini difokuskan pada implementasi automation sesuai requirement Take Home Test QA Automation Engineer eDOT

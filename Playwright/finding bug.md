@@ -1,21 +1,21 @@
-# Bug Findings Log
+# Log Temuan Bug
 
-Dokumen ini digunakan untuk mencatat seluruh temuan bug pada automation atau exploratory testing eDOT. Setiap temuan baru diberi ID berurutan dan mengikuti template pada bagian **Reusable Bug Template**.
+Dokumen ini digunakan untuk mencatat seluruh temuan bug pada automation atau exploratory testing eDOT. Setiap temuan baru diberi ID berurutan dan mengikuti template pada bagian **Template Bug Reusable**.
 
-## Findings Index
+## Indeks Temuan
 
 | ID      | Title                                                  | Module             | Severity | Priority | Status |
 | ------- | ------------------------------------------------------ | ------------------ | -------- | -------- | ------ |
-| BUG-001 | Deleted company remains visible on the `Companies` tab | Company Management | Major    | High     | Open   |
+| BUG-001 | Company yang dihapus masih terlihat pada tab `Companies` | Company Management | Major    | High     | Open   |
 
-## Reusable Bug Template
+## Template Bug yang Dapat Digunakan Kembali
 
 Salin bagian berikut untuk membuat temuan baru. Ganti ID dengan nomor berikutnya, lalu lengkapi field yang relevan.
 
 ```markdown
-## BUG-XXX: [Short, actionable bug title]
+## BUG-XXX: [Judul bug singkat dan dapat ditindaklanjuti]
 
-### Issue Summary
+### Ringkasan Issue
 
 | Field             | Detail                                         |
 | ----------------- | ---------------------------------------------- |
@@ -23,63 +23,63 @@ Salin bagian berikut untuk membuat temuan baru. Ganti ID dengan nomor berikutnya
 | **Status**        | Open                                           |
 | **Priority**      | High / Medium / Low                            |
 | **Severity**      | Blocker / Critical / Major / Minor / Trivial   |
-| **Module**        | [Feature or module]                            |
-| **Component**     | [Page, flow, or component]                     |
-| **Environment**   | [URL, browser, OS, build, or test environment] |
-| **Reported Date** | [DD Month YYYY]                                |
-| **Reporter**      | [Name or team]                                 |
+| **Module**        | [Feature atau module]                          |
+| **Component**     | [Page, flow, atau component]                   |
+| **Environment**   | [URL, browser, OS, build, atau test environment] |
+| **Reported Date** | [DD Bulan YYYY]                                |
+| **Reporter**      | [Nama atau tim]                                |
 
-### Description
+### Deskripsi
 
-[What is wrong and under what condition does it occur?]
+[Apa yang salah dan pada kondisi apa hal tersebut terjadi?]
 
-### Preconditions
+### Prakondisi
 
-- [Required account, data, permission, or setup]
+- [Account, data, izin, atau setup yang diperlukan]
 
-### Steps to Reproduce
+### Langkah Reproduksi
 
-1. [Step 1]
-2. [Step 2]
-3. [Step 3]
+1. [Langkah 1]
+2. [Langkah 2]
+3. [Langkah 3]
 
-### Expected Result
+### Hasil yang Diharapkan
 
-- [Expected behavior]
+- [Perilaku yang diharapkan]
 
-### Actual Result
+### Hasil Aktual
 
-- [Observed behavior]
+- [Perilaku yang diamati]
 
-### Impact
+### Dampak
 
-- [User, business, data, or testing impact]
+- [Dampak pada user, bisnis, data, atau testing]
 
 ### Evidence
 
-- [Screenshot, video, log, or report link]
+- [Link screenshot, video, log, atau report]
 
-### Suggested Investigation Areas
+### Area Investigasi yang Disarankan
 
-- [Relevant UI, API, state, data, or integration area]
+- [Area UI, API, state, data, atau integrasi yang relevan]
 
-### Acceptance Criteria
+### Kriteria Penerimaan
 
-- [Condition that confirms the bug is fixed]
+- [Kondisi yang mengonfirmasi bug sudah diperbaiki]
 
-### Verification Notes
+### Catatan Verifikasi
 
-[Retest scope and regression checks after the fix.]
+[Cakupan retest dan pemeriksaan regression setelah perbaikan.]
 ```
 
-## BUG-001: Deleted Company Still Visible on Companies Tab
+## BUG-001: Company yang Dihapus Masih Terlihat pada Tab Companies
 
-### Issue Summary
+### Ringkasan Issue
 
 | Field             | Detail                                                 |
 | ----------------- | ------------------------------------------------------ |
 | **Issue Type**    | Bug                                                    |
-| **Title**         | Deleted company remains visible on the `Companies` tab |
+| **Title**         | Company yang dihapus masih terlihat pada tab `Companies` |
 | **Status**        | Open                                                   |
 | **Priority**      | High                                                   |
 | **Severity**      | Major                                                  |
@@ -88,70 +88,70 @@ Salin bagian berikut untuk membuat temuan baru. Ganti ID dengan nomor berikutnya
 | **Environment**   | eDOT web application                                   |
 | **Reported Date** | 19 August 2026                                         |
 
-### Description
+### Deskripsi
 
-After a company is deleted, the deleted company is still displayed on the `Companies` tab. When the user clicks **Manage** on the displayed company, the company detail data is `null`.
+Setelah company dihapus, company tersebut masih ditampilkan pada tab `Companies`. Saat user menekan **Manage** pada company yang masih tampil, data detail company bernilai `null`.
 
-This indicates that the company record may already be deleted from the source data, but the Companies list is not refreshed or is displaying stale data.
+Hal ini menunjukkan bahwa record company mungkin sudah dihapus dari data sumber, tetapi daftar Companies tidak di-refresh atau menampilkan data stale.
 
-### Preconditions
+### Prakondisi
 
-- User is authenticated in the eDOT web application.
-- At least one company exists in the **Companies** tab.
-- User has permission to delete a company.
+- User sudah terautentikasi pada aplikasi web eDOT
+- Setidaknya satu company ada pada tab **Companies**
+- User memiliki izin untuk menghapus company
 
-### Steps to Reproduce
+### Langkah Reproduksi
 
-1. Open the **Companies** tab.
-2. Select an existing company.
-3. Delete the company.
-4. Return to or refresh the **Companies** tab.
-5. Search for or locate the deleted company.
-6. Click **Manage** on the deleted company.
+1. Buka tab **Companies**.
+2. Pilih company yang sudah ada.
+3. Hapus company.
+4. Kembali ke atau refresh tab **Companies**.
+5. Cari atau temukan company yang dihapus.
+6. Tekan **Manage** pada company yang dihapus.
 
-### Expected Result
+### Hasil yang Diharapkan
 
-- The deleted company is removed from the **Companies** tab.
-- The deleted company cannot be found through the company list or search.
-- No **Manage** action is available for the deleted company.
+- Company yang dihapus hilang dari tab **Companies**
+- Company yang dihapus tidak dapat ditemukan melalui daftar atau pencarian company
+- Tidak ada aksi **Manage** yang tersedia untuk company yang dihapus
 
-### Actual Result
+### Hasil Aktual
 
-- The deleted company remains visible on the **Companies** tab.
-- The user can still click **Manage**.
-- The company detail data displayed after opening **Manage** is `null`.
+- Company yang dihapus tetap terlihat pada tab **Companies**
+- User masih dapat menekan **Manage**
+- Data detail company setelah membuka **Manage** bernilai `null`
 
-### Impact
+### Dampak
 
-- Users may believe that the deletion did not succeed.
-- The Companies list contains stale or invalid records.
-- Users can access a company entry that has no valid detail data.
-- This can reduce trust in company data and may lead to incorrect follow-up actions.
+- User dapat mengira bahwa penghapusan tidak berhasil
+- Daftar Companies berisi record stale atau invalid
+- User dapat membuka entry company yang tidak memiliki data detail valid
+- Hal ini dapat mengurangi kepercayaan terhadap data company dan memicu tindakan lanjutan yang keliru
 
 ### Evidence
 
 - Jam recording: [View video evidence](https://jam.dev/c/23b3b183-d28c-44eb-937f-9fd4101a8ea2)
 
-### Suggested Investigation Areas
+### Area Investigasi yang Disarankan
 
-- Refresh or invalidate the Companies list after a successful delete response.
-- Verify that deleted records are excluded from the Companies list API response.
-- Check whether the list uses cached data that is not cleared after deletion.
-- Verify that the UI handles a `null` company detail response by removing the stale entry or showing an appropriate not-found state.
+- Refresh atau invalidate daftar Companies setelah response delete berhasil
+- Verifikasi bahwa record yang dihapus tidak ada pada response API daftar Companies
+- Periksa apakah daftar menggunakan cached data yang tidak dibersihkan setelah penghapusan
+- Verifikasi bahwa UI menangani response detail company `null` dengan menghapus entry stale atau menampilkan not-found state yang sesuai
 
-### Acceptance Criteria
+### Kriteria Penerimaan
 
-- A successfully deleted company no longer appears on the **Companies** tab without requiring a full browser restart.
-- Refreshing the page does not restore the deleted company.
-- The deleted company cannot be opened through **Manage**.
-- If a stale entry is encountered, the UI displays a clear not-found state and removes or refreshes the invalid entry.
-- Existing companies remain visible and their detail data is unaffected.
+- Company yang berhasil dihapus tidak lagi muncul pada tab **Companies** tanpa memerlukan restart browser penuh
+- Refresh halaman tidak memunculkan kembali company yang dihapus
+- Company yang dihapus tidak dapat dibuka melalui **Manage**
+- Jika ditemukan entry stale, UI menampilkan not-found state yang jelas dan menghapus atau refresh entry invalid tersebut
+- Company yang sudah ada tetap terlihat dan data detailnya tidak terpengaruh
 
-### Verification Notes
+### Catatan Verifikasi
 
-Retest the deletion flow after the fix using both:
+Uji ulang flow penghapusan setelah perbaikan menggunakan keduanya:
 
-- A company deleted from the Companies list.
-- A page refresh after deletion.
+- Company yang dihapus dari daftar Companies
+- Refresh halaman setelah penghapusan
 
-Confirm that the deleted company is absent from the list and that no `null` detail page can be opened.
+Pastikan company yang dihapus tidak ada di daftar dan tidak ada halaman detail `null` yang dapat dibuka.

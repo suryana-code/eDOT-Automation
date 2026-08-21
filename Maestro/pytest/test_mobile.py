@@ -9,19 +9,18 @@ from utils.maestro_runner import run_maestro
 @allure.story("Create Customer - Tier 2")
 def test_create_customer_mobile(ai_customer_data):
     """
-    Execute the main Maestro flow using dynamically generated
-    customer data.
+    Menjalankan flow utama Maestro menggunakan data customer yang dibuat dinamis.
     """
 
     env = os.environ.copy()
 
-    # Credentials
+    # Credential dibaca dari environment variable yang telah dimuat wrapper.
     env["APP_ID"] = os.environ["APP_ID"]
     env["COMPANY_ID"] = os.environ["COMPANY_ID"]
     env["USER_NAME"] = os.environ["USER_NAME"]
     env["PASSWORD"] = os.environ["PASSWORD"]
 
-    # Dynamic customer data
+    # Data customer dinamis diteruskan ke environment flow Maestro.
     env["OUTLET_NAME"] = ai_customer_data["outlet_name"]
     env["PHONE"] = ai_customer_data["phone"]
     env["EMAIL"] = ai_customer_data["email"]
@@ -40,8 +39,8 @@ def test_create_customer_mobile(ai_customer_data):
 
     env["KTP"] = ai_customer_data["ktp"]
 
-    # Attach generated test data to Allure.
-    # Password is intentionally excluded.
+    # Melampirkan data test yang benar-benar digunakan ke Allure.
+    # Password sengaja dikecualikan dari attachment.
     test_data = {
         key: env[key]
         for key in [

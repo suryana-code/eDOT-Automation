@@ -12,7 +12,7 @@ load_dotenv(ROOT_ENV_PATH)
 
 @pytest.hookimpl(tryfirst=True)
 def pytest_runtest_setup(item):
-    """Group all Web test results under one explicit Allure suite."""
+    """Mengelompokkan seluruh hasil test Web pada satu suite Allure eksplisit."""
     allure.dynamic.parent_suite("Playwright")
     allure.dynamic.suite("Web Automation")
 
@@ -82,7 +82,7 @@ def authenticated_page(browser, storage_state, config):
 
     page = context.new_page()
 
-    # buka aplikasi
+    # Membuka aplikasi dari BASE_URL
     page.goto(config["base_url"])
 
     yield page
