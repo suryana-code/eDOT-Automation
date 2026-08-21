@@ -61,8 +61,11 @@ jobs:
       - name: Install Maestro 2.6.1
         run: |
           export MAESTRO_VERSION=2.6.1
+
           curl -Ls https://get.maestro.mobile.dev | bash
+
           echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+
           "$HOME/.maestro/bin/maestro" --version
 
       # ============================================================
@@ -106,8 +109,6 @@ jobs:
             "https://github.com/suryana-code/eDOT-Automation/releases/download/maestro-ci-v1/edot-maestro-apk.zip"
 
           echo "APK downloaded successfully"
-
-          ls -lh "$APK_ZIP"
 
           echo "Verifying SHA-256..."
 
@@ -179,7 +180,7 @@ jobs:
           script: |
 
             echo "========================================"
-            echo "Android Emulator Information"
+            echo "ANDROID ENVIRONMENT"
             echo "========================================"
 
             adb devices
@@ -193,48 +194,41 @@ jobs:
             echo "Supported ABIs:"
             adb shell getprop ro.product.cpu.abilist
 
-            echo "========================================"
-            echo "Emulator is ready"
-            echo "========================================"
-
-            sleep 5
 
             echo "========================================"
-            echo "Verify APK"
+            echo "VERIFY APK"
             echo "========================================"
 
-            echo "RUNNER_TEMP:"
-            echo "$RUNNER_TEMP"
-
-            echo "APK contents:"
+            echo "APK directory:"
+            echo "$RUNNER_TEMP/edot-apk"
 
             ls -lah "$RUNNER_TEMP/edot-apk"
 
-            echo "Base APK:"
-            ls -lh "$RUNNER_TEMP/edot-apk/base.apk"
+            test -f "$RUNNER_TEMP/edot-apk/base.apk"
+            test -f "$RUNNER_TEMP/edot-apk/split_config.arm64_v8a.apk"
+            test -f "$RUNNER_TEMP/edot-apk/split_config.xxhdpi.apk"
 
-            echo "ARM64 split:"
-            ls -lh "$RUNNER_TEMP/edot-apk/split_config.arm64_v8a.apk"
-
-            echo "xxhdpi split:"
-            ls -lh "$RUNNER_TEMP/edot-apk/split_config.xxhdpi.apk"
 
             echo "========================================"
-            echo "Install application"
+            echo "INSTALL APPLICATION"
             echo "========================================"
 
             adb install-multiple -r "$RUNNER_TEMP/edot-apk/base.apk" "$RUNNER_TEMP/edot-apk/split_config.arm64_v8a.apk" "$RUNNER_TEMP/edot-apk/split_config.xxhdpi.apk"
 
             echo "Application installed successfully"
 
+
             echo "========================================"
-            echo "Verify package"
+            echo "VERIFY PACKAGE"
             echo "========================================"
 
             adb shell pm path "$APP_ID"
 
+            adb shell dumpsys package "$APP_ID" | head -80
+
+
             echo "========================================"
-            echo "Launch application"
+            echo "LAUNCH APPLICATION"
             echo "========================================"
 
             adb shell monkey -p "$APP_ID" -c android.intent.category.LAUNCHER 1
@@ -243,8 +237,9 @@ jobs:
 
             sleep 8
 
+
             echo "========================================"
-            echo "Verify Maestro project"
+            echo "VERIFY MAESTRO PROJECT"
             echo "========================================"
 
             echo "Workspace:"
@@ -253,33 +248,58 @@ jobs:
             echo "Maestro directory:"
             ls -lah "$GITHUB_WORKSPACE/Maestro"
 
-            echo "========================================"
-            echo "Verify pytest"
-            echo "========================================"
-
-            python --version
-
-            pytest --version
+            echo "Pytest directory:"
+            ls -lah "$GITHUB_WORKSPACE/Maestro/pytest"
 
             test -f "$GITHUB_WORKSPACE/Maestro/pytest/test_mobile.py"
 
-            echo "pytest/test_mobile.py found"
 
             echo "========================================"
-            echo "Run Maestro automation"
+            echo "PYTHON / PYTEST"
             echo "========================================"
 
-            cd "$GITHUB_WORKSPACE/Maestro" && pytest -v -s pytest/test_mobile.py
+            python --version
+            pytest --version
+
+
+            echo "========================================"
+            echo "ENVIRONMENT CHECK"
+            echo "========================================"
+
+            echo "APP_ID is configured:"
+            if [ -n "$APP_ID" ]; then
+              echo "YES"
+            else
+              echo "NO"
+              exit 1
+            fi
+
+            echo "COMPANY_ID is configured:"
+            if [ -n "$COMPANY_ID" ]; then
+              echo "YES"
+            else
+              echo "NO"
+              exit 1
+            fi
+
+
+            echo "========================================"
+            echo "RUN MAESTRO AUTOMATION"
+            echo "========================================"
+
+            cd "$GITHUB_WORKSPACE/Maestro"
+
+            python -m pytest -vv -s pytest/test_mobile.py
 
       # ============================================================
-      # Allure report
+      # Generate Allure
       # ============================================================
 
       - name: Generate Allure report
         if: always()
         run: |
           echo "========================================"
-          echo "Generate Allure report"
+          echo "GENERATE ALLURE REPORT"
           echo "========================================"
 
           if [ -d "Maestro/allure-results" ] && \
@@ -298,7 +318,7 @@ jobs:
           fi
 
       # ============================================================
-      # Upload Allure results
+      # Upload Allure Results
       # ============================================================
 
       - name: Upload Allure results
@@ -310,7 +330,7 @@ jobs:
           if-no-files-found: warn
 
       # ============================================================
-      # Upload evidence
+      # Upload Maestro Evidence
       # ============================================================
 
       - name: Upload Maestro evidence
@@ -325,7 +345,21 @@ jobs:
           if-no-files-found: warn
 
       # ============================================================
-      # Upload Allure report
+      # Upload Maestro Debug Output
+      # ============================================================
+
+      - name: Upload Maestro debug output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maestro-debug-output
+          path: |
+            /home/runner/.maestro/tests/
+            /home/runner/.maestro/
+          if-no-files-found: warn
+
+      # ============================================================
+      # Upload Allure Report
       # ============================================================
 
       - name: Upload Allure report
