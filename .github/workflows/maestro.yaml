@@ -19,22 +19,25 @@ jobs:
 
     steps:
       # ============================================================
-      # Checkout
+      # Checkout repository
       # ============================================================
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
       # ============================================================
-      # Python
+      # Setup Python
       # ============================================================
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.9"
 
       # ============================================================
-      # Java
+      # Setup Java
       # ============================================================
+
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
@@ -42,8 +45,9 @@ jobs:
           java-version: "21"
 
       # ============================================================
-      # Python dependencies
+      # Install Python dependencies
       # ============================================================
+
       - name: Install Python dependencies
         working-directory: Maestro
         run: |
@@ -51,8 +55,9 @@ jobs:
           pip install -r requirements.txt
 
       # ============================================================
-      # Maestro
+      # Install Maestro
       # ============================================================
+
       - name: Install Maestro 2.6.1
         run: |
           export MAESTRO_VERSION=2.6.1
@@ -64,8 +69,9 @@ jobs:
           "$HOME/.maestro/bin/maestro" --version
 
       # ============================================================
-      # Allure
+      # Install Allure CLI
       # ============================================================
+
       - name: Install Allure CLI
         run: |
           sudo npm install -g allure-commandline --save-dev
@@ -73,8 +79,9 @@ jobs:
           allure --version
 
       # ============================================================
-      # Download APK
+      # Download and verify APK
       # ============================================================
+
       - name: Download and verify APK package
         run: |
           set -euo pipefail
@@ -127,7 +134,7 @@ jobs:
 
           unzip -q "$APK_ZIP" -d "$APK_DIR"
 
-          echo "APK files:"
+          echo "APK contents:"
           find "$APK_DIR" \
             -maxdepth 1 \
             -type f \
@@ -146,8 +153,9 @@ jobs:
           echo "All required APK files are available"
 
       # ============================================================
-      # KVM
+      # Enable KVM
       # ============================================================
+
       - name: Enable KVM
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
@@ -156,14 +164,15 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-          echo "KVM:"
           ls -la /dev/kvm
 
       # ============================================================
-      # Emulator + Maestro
+      # Start Android emulator and run Maestro
       # ============================================================
+
       - name: Start emulator and run Maestro
         uses: reactivecircus/android-emulator-runner@v2
+
         with:
           api-level: 35
           target: google_apis
@@ -184,7 +193,6 @@ jobs:
             -no-snapshot-save
 
           script: |
-            set -e
 
             echo "========================================"
             echo "Android Emulator Information"
@@ -207,6 +215,35 @@ jobs:
 
             sleep 5
 
+
+            # ========================================================
+            # Verify APK directory
+            # ========================================================
+
+            echo "========================================"
+            echo "Verify APK"
+            echo "========================================"
+
+            echo "RUNNER_TEMP:"
+            echo "$RUNNER_TEMP"
+
+            echo "APK directory:"
+            echo "$RUNNER_TEMP/edot-apk"
+
+            echo "APK contents:"
+
+            ls -lah "$RUNNER_TEMP/edot-apk"
+
+            echo "Base APK:"
+            ls -lh "$RUNNER_TEMP/edot-apk/base.apk"
+
+            echo "ARM64 split:"
+            ls -lh "$RUNNER_TEMP/edot-apk/split_config.arm64_v8a.apk"
+
+            echo "xxhdpi split:"
+            ls -lh "$RUNNER_TEMP/edot-apk/split_config.xxhdpi.apk"
+
+
             # ========================================================
             # Install application
             # ========================================================
@@ -215,24 +252,13 @@ jobs:
             echo "Install application"
             echo "========================================"
 
-            APK_DIR="$RUNNER_TEMP/edot-apk"
-
-            echo "APK directory:"
-            echo "$APK_DIR"
-
-            echo "APK contents:"
-            ls -lah "$APK_DIR"
-
-            test -f "$APK_DIR/base.apk"
-            test -f "$APK_DIR/split_config.arm64_v8a.apk"
-            test -f "$APK_DIR/split_config.xxhdpi.apk"
-
             adb install-multiple -r \
-              "$APK_DIR/base.apk" \
-              "$APK_DIR/split_config.arm64_v8a.apk" \
-              "$APK_DIR/split_config.xxhdpi.apk"
+              "$RUNNER_TEMP/edot-apk/base.apk" \
+              "$RUNNER_TEMP/edot-apk/split_config.arm64_v8a.apk" \
+              "$RUNNER_TEMP/edot-apk/split_config.xxhdpi.apk"
 
             echo "Application installed successfully"
+
 
             # ========================================================
             # Verify package
@@ -243,6 +269,7 @@ jobs:
             echo "========================================"
 
             adb shell pm path "$APP_ID"
+
 
             # ========================================================
             # Launch application
@@ -261,6 +288,7 @@ jobs:
 
             sleep 8
 
+
             # ========================================================
             # Verify Maestro project
             # ========================================================
@@ -277,24 +305,23 @@ jobs:
             echo "Project files:"
             find . -maxdepth 2 -type f | sort
 
+
             # ========================================================
-            # Verify pytest
+            # Verify test file
             # ========================================================
 
             echo "========================================"
             echo "Verify pytest"
             echo "========================================"
 
-            echo "Python:"
             python --version
 
-            echo "Pytest:"
             pytest --version
 
-            echo "Test file:"
             test -f pytest/test_mobile.py
 
             echo "pytest/test_mobile.py found"
+
 
             # ========================================================
             # Run Maestro automation
@@ -309,6 +336,7 @@ jobs:
       # ============================================================
       # Generate Allure report
       # ============================================================
+
       - name: Generate Allure report
         if: always()
         run: |
@@ -334,6 +362,7 @@ jobs:
       # ============================================================
       # Upload Allure results
       # ============================================================
+
       - name: Upload Allure results
         if: always()
         uses: actions/upload-artifact@v4
@@ -345,6 +374,7 @@ jobs:
       # ============================================================
       # Upload Maestro evidence
       # ============================================================
+
       - name: Upload Maestro evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -359,6 +389,7 @@ jobs:
       # ============================================================
       # Upload Allure report
       # ============================================================
+
       - name: Upload Allure report
         if: always()
         uses: actions/upload-artifact@v4
