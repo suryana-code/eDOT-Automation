@@ -16,9 +16,6 @@ jobs:
       USER_NAME: ${{ secrets.MAESTRO_USER_NAME }}
       PASSWORD: ${{ secrets.MAESTRO_PASSWORD }}
 
-      # Public GitHub Release asset
-      MAESTRO_APK_URL: ${{ github.server_url }}/${{ github.repository }}/releases/download/maestro-ci-v1/edot-maestro-apk.zip
-
       MAESTRO_APK_SHA256: ${{ secrets.MAESTRO_APK_SHA256 }}
 
     steps:
@@ -99,9 +96,6 @@ jobs:
             : "${PASSWORD:?MAESTRO_PASSWORD is required}"
             : "${MAESTRO_APK_SHA256:?MAESTRO_APK_SHA256 is required}"
 
-            echo "APK URL:"
-            echo "$MAESTRO_APK_URL"
-
             echo "========================================"
             echo "Android emulator information"
             echo "========================================"
@@ -121,6 +115,8 @@ jobs:
             echo "Download APK"
             echo "========================================"
 
+            APK_URL="https://github.com/suryana-code/eDOT-Automation/releases/download/maestro-ci-v1/edot-maestro-apk.zip"
+
             mkdir -p /tmp/edot-apk
 
             curl \
@@ -129,7 +125,7 @@ jobs:
               --retry 3 \
               --show-error \
               --output /tmp/edot-maestro-apk.zip \
-              "$MAESTRO_APK_URL"
+              "$APK_URL"
 
             echo "APK downloaded successfully"
 
@@ -200,7 +196,7 @@ jobs:
             sleep 5
 
             echo "========================================"
-            echo "Run Maestro"
+            echo "Run Maestro automation"
             echo "========================================"
 
             cd Maestro
