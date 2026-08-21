@@ -80,7 +80,7 @@ jobs:
             -no-snapshot-save
 
           script: |
-            set -euo pipefail
+            set -eu
 
             : "${MAESTRO_APK_URL:?MAESTRO_APK_URL is required}"
             : "${MAESTRO_APK_SHA256:?MAESTRO_APK_SHA256 is required}"
