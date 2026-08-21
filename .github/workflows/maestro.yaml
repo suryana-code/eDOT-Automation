@@ -15,7 +15,6 @@ jobs:
       COMPANY_ID: ${{ secrets.MAESTRO_COMPANY_ID }}
       USER_NAME: ${{ secrets.MAESTRO_USER_NAME }}
       PASSWORD: ${{ secrets.MAESTRO_PASSWORD }}
-
       MAESTRO_APK_SHA256: ${{ secrets.MAESTRO_APK_SHA256 }}
 
     steps:
@@ -96,6 +95,9 @@ jobs:
             : "${PASSWORD:?MAESTRO_PASSWORD is required}"
             : "${MAESTRO_APK_SHA256:?MAESTRO_APK_SHA256 is required}"
 
+            echo "Repository:"
+            echo "$GITHUB_REPOSITORY"
+
             echo "========================================"
             echo "Android emulator information"
             echo "========================================"
@@ -112,22 +114,19 @@ jobs:
             adb shell getprop ro.product.cpu.abilist
 
             echo "========================================"
-            echo "Download APK"
+            echo "Download APK from GitHub Release"
             echo "========================================"
-
-            APK_URL="https://github.com/suryana-code/eDOT-Automation/releases/download/maestro-ci-v1/edot-maestro-apk.zip"
 
             mkdir -p /tmp/edot-apk
 
-            curl \
-              --fail \
-              --location \
-              --retry 3 \
-              --show-error \
-              --output /tmp/edot-maestro-apk.zip \
-              "$APK_URL"
+            gh release download maestro-ci-v1 \
+              --repo "$GITHUB_REPOSITORY" \
+              --pattern "edot-maestro-apk.zip" \
+              --output /tmp/edot-maestro-apk.zip
 
             echo "APK downloaded successfully"
+
+            ls -lh /tmp/edot-maestro-apk.zip
 
             echo "========================================"
             echo "Verify SHA-256"
