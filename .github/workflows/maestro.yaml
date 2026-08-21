@@ -70,6 +70,7 @@ jobs:
           disable-animations: true
           force-avd-creation: false
           emulator-boot-timeout: 600
+
           emulator-options: >-
             -no-window
             -gpu swiftshader_indirect
@@ -82,77 +83,111 @@ jobs:
           script: |
             set -eu
 
+            echo "========================================"
+            echo "Validate secrets"
+            echo "========================================"
+
+            : "${APP_ID:?MAESTRO_APP_ID is required}"
+            : "${COMPANY_ID:?MAESTRO_COMPANY_ID is required}"
+            : "${USER_NAME:?MAESTRO_USER_NAME is required}"
+            : "${PASSWORD:?MAESTRO_PASSWORD is required}"
             : "${MAESTRO_APK_URL:?MAESTRO_APK_URL is required}"
             : "${MAESTRO_APK_SHA256:?MAESTRO_APK_SHA256 is required}"
+
+            echo "APK URL configured: YES"
+            echo "APK checksum configured: YES"
 
             echo "========================================"
             echo "Android emulator information"
             echo "========================================"
 
             adb devices
+
+            echo "SDK:"
             adb shell getprop ro.build.version.sdk
+
+            echo "Primary ABI:"
             adb shell getprop ro.product.cpu.abi
+
+            echo "Supported ABIs:"
             adb shell getprop ro.product.cpu.abilist
 
             echo "========================================"
-            echo "Download APK"
+            echo "Prepare APK"
             echo "========================================"
 
-            apk_dir=/tmp/edot-apk
-            apk_zip=/tmp/edot-maestro-apk.zip
+            mkdir -p /tmp/edot-apk
 
-            mkdir -p "$apk_dir"
+            echo "Downloading APK package..."
 
             curl \
               --fail \
               --location \
               --retry 3 \
-              --output "$apk_zip" \
+              --output /tmp/edot-maestro-apk.zip \
               "$MAESTRO_APK_URL"
 
-            echo "Verifying APK checksum..."
+            echo "Verifying SHA-256..."
 
             printf '%s  %s\n' \
               "$MAESTRO_APK_SHA256" \
-              "$apk_zip" | \
+              "/tmp/edot-maestro-apk.zip" | \
               sha256sum --check --status
 
             echo "Checksum valid"
 
-            unzip -q "$apk_zip" -d "$apk_dir"
+            echo "Extracting APK..."
 
-            echo "APK files:"
+            unzip -q \
+              /tmp/edot-maestro-apk.zip \
+              -d /tmp/edot-apk
 
-            find "$apk_dir" \
+            echo "Extracted files:"
+
+            find /tmp/edot-apk \
               -maxdepth 1 \
               -type f \
               -name '*.apk' \
               -printf '%f\n' | \
               sort
 
-            test -f "$apk_dir/base.apk"
-            test -f "$apk_dir/split_config.arm64_v8a.apk"
-            test -f "$apk_dir/split_config.xxhdpi.apk"
+            echo "========================================"
+            echo "Validate APK files"
+            echo "========================================"
+
+            test -f /tmp/edot-apk/base.apk
+            test -f /tmp/edot-apk/split_config.arm64_v8a.apk
+            test -f /tmp/edot-apk/split_config.xxhdpi.apk
+
+            echo "All required APK files found"
 
             echo "========================================"
             echo "Install application"
             echo "========================================"
 
             adb install-multiple -r \
-              "$apk_dir/base.apk" \
-              "$apk_dir/split_config.arm64_v8a.apk" \
-              "$apk_dir/split_config.xxhdpi.apk"
+              /tmp/edot-apk/base.apk \
+              /tmp/edot-apk/split_config.arm64_v8a.apk \
+              /tmp/edot-apk/split_config.xxhdpi.apk
 
-            echo "Installed package:"
+            echo "Application installed"
+
+            echo "========================================"
+            echo "Verify package"
+            echo "========================================"
 
             adb shell pm path "$APP_ID"
 
-            echo "Launching application..."
+            echo "========================================"
+            echo "Launch application"
+            echo "========================================"
 
             adb shell monkey \
               -p "$APP_ID" \
               -c android.intent.category.LAUNCHER \
               1
+
+            sleep 5
 
             echo "========================================"
             echo "Run Maestro automation"
@@ -173,8 +208,10 @@ jobs:
               Maestro/allure-results \
               --clean \
               -o Maestro/allure-report || \
-              echo "Allure report tidak dapat dibuat; result tetap akan di-upload"
+              echo "Allure report could not be generated"
 
+          else
+            echo "No Allure results found"
           fi
 
       - name: Upload Allure results
@@ -190,7 +227,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: maestro-evidence
-          path: Maestro/recordings/
+          path: |
+            Maestro/recordings/
+            Maestro/**/*.log
           if-no-files-found: warn
 
       - name: Upload Allure report
