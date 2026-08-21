@@ -43,7 +43,6 @@ jobs:
           export MAESTRO_VERSION=2.6.1
           curl -Ls https://get.maestro.mobile.dev | bash
           echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
-
           "$HOME/.maestro/bin/maestro" --version | grep -Fx "2.6.1"
 
       - name: Install Allure CLI
@@ -90,7 +89,6 @@ jobs:
 
           unzip -q "$apk_zip" -d "$apk_dir"
 
-          echo "APK files:"
           find "$apk_dir" \
             -maxdepth 1 \
             -type f \
@@ -121,7 +119,6 @@ jobs:
           target: google_apis
           arch: x86_64
           profile: pixel_5
-
           force-avd-creation: true
           disable-animations: true
           emulator-boot-timeout: 600
@@ -144,7 +141,6 @@ jobs:
 
             adb wait-for-device
 
-            echo "ADB devices:"
             adb devices
 
             echo "SDK:"
@@ -160,14 +156,24 @@ jobs:
             echo "Wait for Android boot"
             echo "========================================"
 
-            timeout 120 sh -c '
-              until [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d "\r")" = "1" ]; do
-                echo "Waiting for Android boot..."
-                sleep 2
-              done
-            '
+            boot_completed=""
 
-            echo "Android boot completed"
+            for i in $(seq 1 60); do
+              boot_completed="$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r' || true)"
+
+              if [ "$boot_completed" = "1" ]; then
+                echo "Android boot completed"
+                break
+              fi
+
+              echo "Waiting for Android boot... $i/60"
+              sleep 2
+            done
+
+            if [ "$boot_completed" != "1" ]; then
+              echo "Android emulator failed to complete boot"
+              exit 1
+            fi
 
             echo "========================================"
             echo "Prepare emulator"
@@ -202,7 +208,7 @@ jobs:
               -c android.intent.category.LAUNCHER \
               1
 
-            echo "Waiting for application to become ready..."
+            echo "Waiting for application..."
             sleep 8
 
             echo "========================================"
@@ -234,7 +240,6 @@ jobs:
               --clean \
               -o Maestro/allure-report \
               || echo "Allure report generation failed."
-
           else
             echo "No Allure results found."
           fi
