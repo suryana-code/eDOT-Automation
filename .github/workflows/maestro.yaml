@@ -41,11 +41,8 @@ jobs:
       - name: Install Maestro 2.6.1
         run: |
           export MAESTRO_VERSION=2.6.1
-
           curl -Ls https://get.maestro.mobile.dev | bash
-
           echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
-
           "$HOME/.maestro/bin/maestro" --version | grep -Fx "2.6.1"
 
       - name: Install Allure CLI
@@ -54,8 +51,8 @@ jobs:
 
       - name: Enable KVM
         run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | \
-            sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
 
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
@@ -70,9 +67,8 @@ jobs:
           arch: x86_64
           profile: pixel_5
           disable-animations: true
-          force-avd-creation: false
+          force-avd-creation: true
           emulator-boot-timeout: 600
-
           emulator-options: >-
             -no-window
             -gpu swiftshader_indirect
@@ -86,20 +82,7 @@ jobs:
             set -eu
 
             echo "========================================"
-            echo "Validate environment"
-            echo "========================================"
-
-            : "${APP_ID:?MAESTRO_APP_ID is required}"
-            : "${COMPANY_ID:?MAESTRO_COMPANY_ID is required}"
-            : "${USER_NAME:?MAESTRO_USER_NAME is required}"
-            : "${PASSWORD:?MAESTRO_PASSWORD is required}"
-            : "${MAESTRO_APK_SHA256:?MAESTRO_APK_SHA256 is required}"
-
-            echo "Repository:"
-            echo "$GITHUB_REPOSITORY"
-
-            echo "========================================"
-            echo "Android emulator information"
+            echo "Android Emulator Information"
             echo "========================================"
 
             adb devices
@@ -114,68 +97,73 @@ jobs:
             adb shell getprop ro.product.cpu.abilist
 
             echo "========================================"
-            echo "Download APK from GitHub Release"
+            echo "Prepare APK"
             echo "========================================"
 
-            mkdir -p /tmp/edot-apk
+            APK_URL="https://github.com/suryana-code/eDOT-Automation/releases/download/maestro-ci-v1/edot-maestro-apk.zip"
 
-            gh release download maestro-ci-v1 \
-              --repo "$GITHUB_REPOSITORY" \
-              --pattern "edot-maestro-apk.zip" \
-              --output /tmp/edot-maestro-apk.zip
+            apk_dir="/tmp/edot-apk"
+            apk_zip="/tmp/edot-maestro-apk.zip"
 
-            echo "APK downloaded successfully"
+            mkdir -p "$apk_dir"
 
-            ls -lh /tmp/edot-maestro-apk.zip
+            echo "Downloading APK package..."
+
+            curl \
+              --fail \
+              --location \
+              --retry 3 \
+              --retry-delay 2 \
+              --output "$apk_zip" \
+              "$APK_URL"
+
+            echo "APK package downloaded."
+
+            ls -lh "$apk_zip"
 
             echo "========================================"
             echo "Verify SHA-256"
             echo "========================================"
 
-            printf '%s  %s\n' \
-              "$MAESTRO_APK_SHA256" \
-              "/tmp/edot-maestro-apk.zip" | \
-              sha256sum --check --status
+            if [ -n "${MAESTRO_APK_SHA256:-}" ]; then
+              printf '%s  %s\n' \
+                "$MAESTRO_APK_SHA256" \
+                "$apk_zip" \
+                | sha256sum --check --status
 
-            echo "SHA-256 verification passed"
+              echo "SHA-256 verification passed."
+            else
+              echo "WARNING: MAESTRO_APK_SHA256 is not configured."
+            fi
 
             echo "========================================"
             echo "Extract APK"
             echo "========================================"
 
-            unzip -q \
-              /tmp/edot-maestro-apk.zip \
-              -d /tmp/edot-apk
+            unzip -q "$apk_zip" -d "$apk_dir"
 
             echo "APK files:"
-
-            find /tmp/edot-apk \
+            find "$apk_dir" \
               -maxdepth 1 \
               -type f \
               -name '*.apk' \
-              -printf '%f\n' | \
-              sort
+              -printf '%f\n' \
+              | sort
 
-            echo "========================================"
-            echo "Validate APK files"
-            echo "========================================"
-
-            test -f /tmp/edot-apk/base.apk
-            test -f /tmp/edot-apk/split_config.arm64_v8a.apk
-            test -f /tmp/edot-apk/split_config.xxhdpi.apk
-
-            echo "Required APK files found"
+            test -f "$apk_dir/base.apk"
+            test -f "$apk_dir/split_config.arm64_v8a.apk"
+            test -f "$apk_dir/split_config.xxhdpi.apk"
 
             echo "========================================"
             echo "Install application"
             echo "========================================"
 
             adb install-multiple -r \
-              /tmp/edot-apk/base.apk \
-              /tmp/edot-apk/split_config.arm64_v8a.apk \
-              /tmp/edot-apk/split_config.xxhdpi.apk
+              "$apk_dir/base.apk" \
+              "$apk_dir/split_config.arm64_v8a.apk" \
+              "$apk_dir/split_config.xxhdpi.apk"
 
-            echo "Application installed"
+            echo "Application installed."
 
             echo "========================================"
             echo "Verify package"
@@ -207,16 +195,17 @@ jobs:
         run: |
           if find Maestro/allure-results \
             -name '*-result.json' \
-            -print -quit | grep -q .; then
+            -print -quit \
+            | grep -q .; then
 
             allure generate \
               Maestro/allure-results \
               --clean \
-              -o Maestro/allure-report || \
-              echo "Allure report could not be generated"
+              -o Maestro/allure-report \
+              || echo "Allure report generation failed."
 
           else
-            echo "No Allure results found"
+            echo "No Allure results found."
           fi
 
       - name: Upload Allure results
@@ -234,7 +223,7 @@ jobs:
           name: maestro-evidence
           path: |
             Maestro/recordings/
-            Maestro/**/*.log
+            Maestro/*.log
           if-no-files-found: warn
 
       - name: Upload Allure report
