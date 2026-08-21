@@ -139,7 +139,6 @@ jobs:
             echo "========================================"
 
             adb wait-for-device
-
             adb devices
 
             echo "SDK:"
@@ -161,7 +160,10 @@ jobs:
             echo "Install application"
             echo "========================================"
 
-            adb install-multiple -r "$RUNNER_TEMP/edot-apk/base.apk" "$RUNNER_TEMP/edot-apk/split_config.arm64_v8a.apk" "$RUNNER_TEMP/edot-apk/split_config.xxhdpi.apk"
+            adb install-multiple -r \
+              "$RUNNER_TEMP/edot-apk/base.apk" \
+              "$RUNNER_TEMP/edot-apk/split_config.arm64_v8a.apk" \
+              "$RUNNER_TEMP/edot-apk/split_config.xxhdpi.apk"
 
             echo "========================================"
             echo "Verify package"
@@ -175,7 +177,10 @@ jobs:
 
             adb shell am force-stop "$APP_ID"
 
-            adb shell monkey -p "$APP_ID" -c android.intent.category.LAUNCHER 1
+            adb shell monkey \
+              -p "$APP_ID" \
+              -c android.intent.category.LAUNCHER \
+              1
 
             echo "Application launched"
 
@@ -187,7 +192,7 @@ jobs:
 
             cd "$GITHUB_WORKSPACE/Maestro"
 
-            make test
+            pytest -v -s pytest/test_mobile.py
 
       - name: Generate Allure report
         if: always()
