@@ -14,6 +14,7 @@ Test mencakup:
 ### Prasyarat
 
 - Maestro CLI terinstal dan tersedia melalui `maestro --version`
+- Versi Maestro yang digunakan dan sudah diverifikasi lokal: `2.6.1`
 - Device Android yang terhubung terlihat melalui `adb devices`
 - Package aplikasi `id.edot.ework` terinstal pada device target
 - Dependency Python diinstal dengan `pip install -r requirements.txt`
@@ -45,6 +46,30 @@ Jalankan command ini dari direktori `Maestro/`. Command tersebut setara dengan:
 ```bash
 pytest -v -s pytest/test_mobile.py
 ```
+
+### CI Maestro
+
+Workflow manual tersedia di `.github/workflows/maestro.yaml`. CI memakai Ubuntu, Android Emulator API 35 `google_apis` `x86_64`, dan Maestro `2.6.1`.
+
+CI tetap memakai wrapper lokal yang sama:
+
+```bash
+cd Maestro
+make test
+```
+
+Sebelum menjalankan workflow, buat GitHub Secrets berikut:
+
+- `MAESTRO_APP_ID`
+- `MAESTRO_COMPANY_ID`
+- `MAESTRO_USER_NAME`
+- `MAESTRO_PASSWORD`
+- `MAESTRO_APK_URL`
+- `MAESTRO_APK_SHA256`
+
+`MAESTRO_APK_URL` harus mengarah ke asset GitHub Release `edot-maestro-apk.zip`. ZIP berisi `base.apk`, `split_config.arm64_v8a.apk`, dan `split_config.xxhdpi.apk`. Workflow memverifikasi SHA256, memasang split APK menggunakan `adb install-multiple -r`, lalu memastikan package `id.edot.ework` tersedia sebelum menjalankan test.
+
+Workflow meng-upload `allure-results/`, `recordings/`, dan `allure-report/` bila tersedia. Artifact tetap dikumpulkan saat test gagal. Kompatibilitas split ARM64 pada emulator `x86_64` API 35 belum terverifikasi sampai workflow dijalankan pertama kali.
 
 ### Allure Report Web + Mobile Gabungan
 

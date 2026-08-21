@@ -1,0 +1,124 @@
+name: Maestro Automation
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  maestro:
+    runs-on: ubuntu-latest
+    env:
+      APP_ID: ${{ secrets.MAESTRO_APP_ID }}
+      COMPANY_ID: ${{ secrets.MAESTRO_COMPANY_ID }}
+      USER_NAME: ${{ secrets.MAESTRO_USER_NAME }}
+      PASSWORD: ${{ secrets.MAESTRO_PASSWORD }}
+      MAESTRO_APK_URL: ${{ secrets.MAESTRO_APK_URL }}
+      MAESTRO_APK_SHA256: ${{ secrets.MAESTRO_APK_SHA256 }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Install Python dependencies
+        working-directory: Maestro
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install Maestro 2.6.1
+        run: |
+          export MAESTRO_VERSION=2.6.1
+          curl -Ls https://get.maestro.mobile.dev | bash
+          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+          "$HOME/.maestro/bin/maestro" --version | grep -Fx "2.6.1"
+
+      - name: Install Allure CLI
+        run: sudo npm install -g allure-commandline --save-dev
+
+      - name: Start emulator and run Maestro
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_5
+          disable-animations: true
+          emulator-options: >-
+            -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+            -camera-back none -camera-front none -no-snapshot-save
+          script: |
+            set -euo pipefail
+            : "${MAESTRO_APK_URL:?MAESTRO_APK_URL is required}"
+            : "${MAESTRO_APK_SHA256:?MAESTRO_APK_SHA256 is required}"
+
+            adb devices
+            adb shell getprop ro.build.version.sdk
+            adb shell getprop ro.product.cpu.abi
+            adb shell getprop ro.product.cpu.abilist
+
+            apk_dir=/tmp/edot-apk
+            apk_zip=/tmp/edot-maestro-apk.zip
+            mkdir -p "$apk_dir"
+            curl --fail --location --retry 3 --output "$apk_zip" "$MAESTRO_APK_URL"
+            printf '%s  %s\n' "$MAESTRO_APK_SHA256" "$apk_zip" | sha256sum --check --status
+            unzip -q "$apk_zip" -d "$apk_dir"
+            find "$apk_dir" -maxdepth 1 -type f -name '*.apk' -printf '%f\n' | sort
+
+            test -f "$apk_dir/base.apk"
+            test -f "$apk_dir/split_config.arm64_v8a.apk"
+            test -f "$apk_dir/split_config.xxhdpi.apk"
+
+            adb install-multiple -r \
+              "$apk_dir/base.apk" \
+              "$apk_dir/split_config.arm64_v8a.apk" \
+              "$apk_dir/split_config.xxhdpi.apk"
+            adb shell pm path "$APP_ID"
+            adb shell monkey -p "$APP_ID" -c android.intent.category.LAUNCHER 1
+
+            cd Maestro
+            make test
+
+      - name: Generate Allure report
+        if: always()
+        run: |
+          if find Maestro/allure-results -name '*-result.json' -print -quit | grep -q .; then
+            allure generate Maestro/allure-results --clean -o Maestro/allure-report || \
+              echo "Allure report tidak dapat dibuat; result tetap akan di-upload"
+          fi
+
+      - name: Upload Allure results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maestro-allure-results
+          path: Maestro/allure-results/
+          if-no-files-found: warn
+
+      - name: Upload Maestro recording and output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maestro-evidence
+          path: Maestro/recordings/
+          if-no-files-found: warn
+
+      - name: Upload Allure report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maestro-allure-report
+          path: Maestro/allure-report/
+          if-no-files-found: warn
