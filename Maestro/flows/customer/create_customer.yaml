@@ -25,11 +25,13 @@ appId: ${APP_ID}
     id: noo_registration_input_email
 
 - inputText: ${EMAIL}
+- hideKeyboard
 
 - tapOn:
     id: noo_registration_input_contact_person
 
 - inputText: ${CONTACT_PERSON}
+- hideKeyboard
 
 - swipe:
     direction: UP
@@ -47,6 +49,7 @@ appId: ${APP_ID}
 - tapOn: "Search"
 
 - inputText: ${OUTLET_TYPE}
+- hideKeyboard
 
 - tapOn:
     text: ${OUTLET_TYPE}
@@ -68,6 +71,7 @@ appId: ${APP_ID}
     id: noo_registration_input_address
 
 - inputText: ${ADDRESS}
+- hideKeyboard
 
 - swipe:
     direction: UP
@@ -94,6 +98,7 @@ appId: ${APP_ID}
 
 - tapOn: "Input KTP"
 - inputText: ${KTP}
+- hideKeyboard
 
 - tapOn: "Upload File"
 
