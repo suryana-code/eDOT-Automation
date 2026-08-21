@@ -206,10 +206,25 @@ jobs:
             echo "VERIFY ENVIRONMENT"
             echo "========================================"
 
-            test -n "$APP_ID"
-            test -n "$COMPANY_ID"
-            test -n "$USER_NAME"
-            test -n "$PASSWORD"
+            if [ -z "$APP_ID" ]; then
+              echo "ERROR: APP_ID is empty"
+              exit 1
+            fi
+
+            if [ -z "$COMPANY_ID" ]; then
+              echo "ERROR: COMPANY_ID is empty"
+              exit 1
+            fi
+
+            if [ -z "$USER_NAME" ]; then
+              echo "ERROR: USER_NAME is empty"
+              exit 1
+            fi
+
+            if [ -z "$PASSWORD" ]; then
+              echo "ERROR: PASSWORD is empty"
+              exit 1
+            fi
 
             echo "Environment variables are configured"
 
@@ -218,45 +233,39 @@ jobs:
             echo "VERIFY APK"
             echo "========================================"
 
-            APK_DIR="$RUNNER_TEMP/edot-apk"
-
-            BASE_APK="$APK_DIR/base.apk"
-            ABI_APK="$APK_DIR/split_config.arm64_v8a.apk"
-            DENSITY_APK="$APK_DIR/split_config.xxhdpi.apk"
-
             echo "APK directory:"
-            echo "$APK_DIR"
+            echo "$RUNNER_TEMP/edot-apk"
 
-            echo "Base APK:"
-            echo "$BASE_APK"
+            echo "APK contents:"
+            ls -lah "$RUNNER_TEMP/edot-apk"
 
-            echo "ABI APK:"
-            echo "$ABI_APK"
+            echo "Verify base APK:"
+            test -f "$RUNNER_TEMP/edot-apk/base.apk"
 
-            echo "Density APK:"
-            echo "$DENSITY_APK"
+            echo "Verify ABI APK:"
+            test -f "$RUNNER_TEMP/edot-apk/split_config.arm64_v8a.apk"
 
-            test -f "$BASE_APK"
-            test -f "$ABI_APK"
-            test -f "$DENSITY_APK"
+            echo "Verify density APK:"
+            test -f "$RUNNER_TEMP/edot-apk/split_config.xxhdpi.apk"
 
-            ls -lh "$BASE_APK"
-            ls -lh "$ABI_APK"
-            ls -lh "$DENSITY_APK"
+            echo "APK files:"
+            ls -lh "$RUNNER_TEMP/edot-apk/base.apk"
+            ls -lh "$RUNNER_TEMP/edot-apk/split_config.arm64_v8a.apk"
+            ls -lh "$RUNNER_TEMP/edot-apk/split_config.xxhdpi.apk"
 
-            echo "APK files are ready"
+            echo "APK verification passed"
 
 
             echo "========================================"
             echo "INSTALL APPLICATION"
             echo "========================================"
 
-            echo "ADB version:"
-            adb version
+            echo "Installing application..."
 
-            echo "Installing APK..."
-
-            adb install-multiple -r "$BASE_APK" "$ABI_APK" "$DENSITY_APK"
+            adb install-multiple -r \
+              "$RUNNER_TEMP/edot-apk/base.apk" \
+              "$RUNNER_TEMP/edot-apk/split_config.arm64_v8a.apk" \
+              "$RUNNER_TEMP/edot-apk/split_config.xxhdpi.apk"
 
             echo "Application installed successfully"
 
@@ -288,7 +297,7 @@ jobs:
             echo "VERIFY MAESTRO PROJECT"
             echo "========================================"
 
-            echo "Repository:"
+            echo "Workspace:"
             echo "$GITHUB_WORKSPACE"
 
             echo "Maestro directory:"
