@@ -15,7 +15,10 @@ jobs:
       COMPANY_ID: ${{ secrets.MAESTRO_COMPANY_ID }}
       USER_NAME: ${{ secrets.MAESTRO_USER_NAME }}
       PASSWORD: ${{ secrets.MAESTRO_PASSWORD }}
-      MAESTRO_APK_URL: ${{ secrets.MAESTRO_APK_URL }}
+
+      # Public GitHub Release asset
+      MAESTRO_APK_URL: ${{ github.server_url }}/${{ github.repository }}/releases/download/maestro-ci-v1/edot-maestro-apk.zip
+
       MAESTRO_APK_SHA256: ${{ secrets.MAESTRO_APK_SHA256 }}
 
     steps:
@@ -42,8 +45,11 @@ jobs:
       - name: Install Maestro 2.6.1
         run: |
           export MAESTRO_VERSION=2.6.1
+
           curl -Ls https://get.maestro.mobile.dev | bash
+
           echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+
           "$HOME/.maestro/bin/maestro" --version | grep -Fx "2.6.1"
 
       - name: Install Allure CLI
@@ -84,18 +90,17 @@ jobs:
             set -eu
 
             echo "========================================"
-            echo "Validate secrets"
+            echo "Validate environment"
             echo "========================================"
 
             : "${APP_ID:?MAESTRO_APP_ID is required}"
             : "${COMPANY_ID:?MAESTRO_COMPANY_ID is required}"
             : "${USER_NAME:?MAESTRO_USER_NAME is required}"
             : "${PASSWORD:?MAESTRO_PASSWORD is required}"
-            : "${MAESTRO_APK_URL:?MAESTRO_APK_URL is required}"
             : "${MAESTRO_APK_SHA256:?MAESTRO_APK_SHA256 is required}"
 
-            echo "APK URL configured: YES"
-            echo "APK checksum configured: YES"
+            echo "APK URL:"
+            echo "$MAESTRO_APK_URL"
 
             echo "========================================"
             echo "Android emulator information"
@@ -113,36 +118,41 @@ jobs:
             adb shell getprop ro.product.cpu.abilist
 
             echo "========================================"
-            echo "Prepare APK"
+            echo "Download APK"
             echo "========================================"
 
             mkdir -p /tmp/edot-apk
-
-            echo "Downloading APK package..."
 
             curl \
               --fail \
               --location \
               --retry 3 \
+              --show-error \
               --output /tmp/edot-maestro-apk.zip \
               "$MAESTRO_APK_URL"
 
-            echo "Verifying SHA-256..."
+            echo "APK downloaded successfully"
+
+            echo "========================================"
+            echo "Verify SHA-256"
+            echo "========================================"
 
             printf '%s  %s\n' \
               "$MAESTRO_APK_SHA256" \
               "/tmp/edot-maestro-apk.zip" | \
               sha256sum --check --status
 
-            echo "Checksum valid"
+            echo "SHA-256 verification passed"
 
-            echo "Extracting APK..."
+            echo "========================================"
+            echo "Extract APK"
+            echo "========================================"
 
             unzip -q \
               /tmp/edot-maestro-apk.zip \
               -d /tmp/edot-apk
 
-            echo "Extracted files:"
+            echo "APK files:"
 
             find /tmp/edot-apk \
               -maxdepth 1 \
@@ -159,7 +169,7 @@ jobs:
             test -f /tmp/edot-apk/split_config.arm64_v8a.apk
             test -f /tmp/edot-apk/split_config.xxhdpi.apk
 
-            echo "All required APK files found"
+            echo "Required APK files found"
 
             echo "========================================"
             echo "Install application"
@@ -190,7 +200,7 @@ jobs:
             sleep 5
 
             echo "========================================"
-            echo "Run Maestro automation"
+            echo "Run Maestro"
             echo "========================================"
 
             cd Maestro
@@ -222,7 +232,7 @@ jobs:
           path: Maestro/allure-results/
           if-no-files-found: warn
 
-      - name: Upload Maestro recording and output
+      - name: Upload Maestro evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
