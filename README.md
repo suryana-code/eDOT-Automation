@@ -12,6 +12,37 @@ eDOT-Automation
 └── Maestro/      # Mobile Automation
 ```
 
+## Combined Allure Report (Local)
+
+Web dan mobile tetap dapat dijalankan secara individual dari folder framework masing-masing:
+
+```bash
+cd Playwright && make test
+cd Playwright && make headed
+cd Playwright && make allure-headed
+
+cd Maestro && make test
+cd Maestro && make allure
+```
+
+Untuk satu execution lokal yang menggabungkan Playwright dan Maestro ke dalam satu report Allure, jalankan dari root repository:
+
+```bash
+make test-all          # menjalankan Web lalu Mobile ke allure-results/
+make generate-all      # membuat allure-report/ dari hasil yang sudah ada
+make open-all          # membuka combined report
+make allure-all        # menjalankan seluruh alur, generate, lalu membuka report
+```
+
+`test-all` selalu membersihkan root `allure-results/` terlebih dahulu agar report hanya memuat execution saat ini. Kedua framework dijalankan secara serial; jika salah satu gagal, framework berikutnya tetap dijalankan dan command akhir tetap gagal setelah evidence dikumpulkan.
+
+Evidence dalam combined report tetap melekat pada test asalnya:
+
+- Playwright failure screenshot berada pada test terkait; setup login failure dapat ditemukan pada `Execution → Set up`.
+- Maestro melampirkan `Maestro Execution Output` dan `Maestro Screen Recording` (`video/mp4`) pada step eksekusi Maestro.
+
+Combined report ini adalah workflow lokal. GitHub Actions yang ada tetap menjalankan dan mempublikasikan report Playwright secara terpisah; mobile CI belum dikonfigurasi.
+
 ---
 
 ## 📌 Playwright

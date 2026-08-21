@@ -113,6 +113,16 @@ make allure
 make allure-headed
 ```
 
+- Jalankan Web dan Mobile dalam satu local Allure report dari root repository:
+
+```bash
+cd ..
+make test-all
+make generate-all
+```
+
+Hasil combined berada pada `../allure-results/` dan `../allure-report/`. Command Playwright individual di atas tetap memakai folder report lokal `Playwright/`.
+
 - Buat laporan failure triage dari hasil Allure yang sudah ada (tidak menjalankan test dan tidak mengubah hasil test):
 
 ```bash

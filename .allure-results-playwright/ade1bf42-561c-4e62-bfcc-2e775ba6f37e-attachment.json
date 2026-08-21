@@ -1,0 +1,21 @@
+{
+  "source": "fallback",
+  "ai_attempts": 0,
+  "company": {
+    "company_name": "PT Widiastuti QA-7ec1e6ce",
+    "email": "qa.7ec1e6ce@example.test",
+    "phone": "6280266353424",
+    "industry": "Technology",
+    "company_type": "Marketplace",
+    "language": "Indonesia",
+    "country": "Indonesia",
+    "province": "JAWA BARAT",
+    "city": "KOTA BANDUNG",
+    "district": "BUAHBATU",
+    "zone": "JATISARI",
+    "sub_district": "JATISARI",
+    "postal_code": "40286",
+    "address": "Gg. PHH. Mustofa No. 58",
+    "branch_name": "Headquarter"
+  }
+}

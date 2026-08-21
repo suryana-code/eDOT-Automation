@@ -1,0 +1,85 @@
+Command: maestro test -p android <environment variables> /Users/suryana/Git/eDOT-Automation/Maestro/flows/main.yaml
+
+--- stdout ---
+Running on Pixel_10_Pro_XL
+  > On Flow Start
+ > Flow main
+  > On Flow Complete
+Capture Maestro execution for Allure evidence... COMPLETED
+Launch app "${APP_ID}" with clear state... COMPLETED
+Run login/login.yaml...
+  Assert that "Ex: P104" is visible... COMPLETED
+  Tap on "Ex: P104"... COMPLETED
+  Input text ${COMPANY_ID}... COMPLETED
+  Tap on "Ex: sfa-131600"... COMPLETED
+  Input text ${USER_NAME}... COMPLETED
+  Tap on "Enter password"... COMPLETED
+  Input text ${PASSWORD}... COMPLETED
+  Hide Keyboard... COMPLETED
+  Tap on "Sign In"... COMPLETED
+  Assert that "Ranking currently unavailable" is visible... COMPLETED
+  Assert that "Ranking currently unavailable" is visible... COMPLETED
+Run login/login.yaml... COMPLETED
+Run customer/create_customer.yaml...
+  Assert that "New Customer" is visible... COMPLETED
+  Tap on "New Customer"... COMPLETED
+  Assert that "New Customer Registration" is visible... COMPLETED
+  Tap on "New Customer Registration"... COMPLETED
+  Tap on id: noo_registration_input_outlet_name... COMPLETED
+  Input text ${OUTLET_NAME}... COMPLETED
+  Tap on id: noo_registration_input_phone... COMPLETED
+  Input text ${PHONE}... COMPLETED
+  Tap on id: noo_registration_input_email... COMPLETED
+  Input text ${EMAIL}... COMPLETED
+  Tap on id: noo_registration_input_contact_person... COMPLETED
+  Input text ${CONTACT_PERSON}... COMPLETED
+  Swiping in UP direction in 400 ms... COMPLETED
+  Tap on id: noo_registration_input_channel... COMPLETED
+  Tap on "${CHANNEL}"... COMPLETED
+  Tap on id: noo_registration_input_outlet_type... COMPLETED
+  Tap on "Search"... COMPLETED
+  Input text ${OUTLET_TYPE}... COMPLETED
+  Tap on "${OUTLET_TYPE}", Index: 1... COMPLETED
+  Tap on "Continue"... COMPLETED
+  Assert that "Store Information" is visible... COMPLETED
+  Tap on id: noo_registration_input_address_type... COMPLETED
+  Tap on "${ADDRESS_TYPE}"... COMPLETED
+  Tap on id: noo_registration_input_address... COMPLETED
+  Input text ${ADDRESS}... COMPLETED
+  Swiping in UP direction in 400 ms... COMPLETED
+  Tap on "Choose Province"... COMPLETED
+  Tap on "${PROVINCE}"... COMPLETED
+  Tap on "Choose City"... COMPLETED
+  Tap on "${CITY}"... COMPLETED
+  Tap on "Choose District"... COMPLETED
+  Tap on "${DISTRICT}"... COMPLETED
+  Tap on "Choose Sub district"... COMPLETED
+  Tap on "${SUBDISTRICT}"... COMPLETED
+  Tap on "Continue"... COMPLETED
+  Assert that "KTP *" is visible... COMPLETED
+  Tap on "Input KTP"... COMPLETED
+  Input text ${KTP}... COMPLETED
+  Tap on "Upload File"... COMPLETED
+  Tap on id: btn_capture... COMPLETED
+  Tap on "Submit"... COMPLETED
+  Tap on id: signature_view... COMPLETED
+  Swipe from (20%,76%) to (35%,70%) in 400 ms... COMPLETED
+  Swipe from (35%,70%) to (45%,79%) in 400 ms... COMPLETED
+  Swipe from (45%,79%) to (55%,69%) in 400 ms... COMPLETED
+  Swipe from (55%,69%) to (70%,77%) in 400 ms... COMPLETED
+  Tap on "Register"... COMPLETED
+  Assert that "Are you sure to save this customer data?" is visible... COMPLETED
+  Tap on "Yes"... COMPLETED
+  Assert that "Data Saved Successfully" is visible... COMPLETED
+  Assert that "Data Saved Successfully" is visible... COMPLETED
+  Tap on "Continue"... COMPLETED
+Run customer/create_customer.yaml... COMPLETED
+Run customer/verify_customer.yaml...
+  Assert that "New Customer List" is visible... COMPLETED
+  Scrolling DOWN until "${OUTLET_NAME}" is visible with speed 60, visibility percentage 50%, timeout 60000 ms, with centering enabled... COMPLETED
+  Assert that "${OUTLET_NAME}" is visible... COMPLETED
+Run customer/verify_customer.yaml... COMPLETED
+Stop recording... COMPLETED
+
+
+--- stderr ---

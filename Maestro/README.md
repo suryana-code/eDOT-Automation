@@ -42,6 +42,17 @@ Run this command from the `Maestro/` directory. It is equivalent to:
 pytest -v -s pytest/test_mobile.py
 ```
 
+### Combined Web + Mobile Allure Report
+
+To run Playwright and Maestro serially into one local Allure result directory, run these commands from the repository root:
+
+```bash
+make test-all
+make generate-all
+```
+
+The shared results are written to `../allure-results/` and the combined HTML report to `../allure-report/`. This does not change the individual Maestro commands above or the existing Playwright-only CI workflow.
+
 ### Run a Maestro Flow Directly for Login Debugging
 
 The complete customer scenario should be run through Pytest because Pytest creates its dynamic customer data. To debug the reusable login flow directly, export the shared root `.env` values first:

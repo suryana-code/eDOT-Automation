@@ -1,0 +1,21 @@
+{
+  "source": "fallback",
+  "ai_attempts": 0,
+  "company": {
+    "company_name": "PT Prayoga QA-bdb59d5b",
+    "email": "qa.bdb59d5b@example.test",
+    "phone": "6284651856297",
+    "industry": "Technology",
+    "company_type": "Marketplace",
+    "language": "Indonesia",
+    "country": "Indonesia",
+    "province": "JAWA BARAT",
+    "city": "KOTA BANDUNG",
+    "district": "BUAHBATU",
+    "zone": "JATISARI",
+    "sub_district": "JATISARI",
+    "postal_code": "40286",
+    "address": "Gang Cempaka No. 0",
+    "branch_name": "Headquarter"
+  }
+}
