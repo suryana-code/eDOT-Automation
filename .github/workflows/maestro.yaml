@@ -55,7 +55,6 @@ jobs:
 
           apk_zip="$RUNNER_TEMP/edot-maestro-apk.zip"
           apk_dir="$RUNNER_TEMP/edot-apk"
-
           apk_sha256="$(printf '%s' "$MAESTRO_APK_SHA256" | tr -d '[:space:]')"
 
           if ! [[ "$apk_sha256" =~ ^[A-Fa-f0-9]{64}$ ]]; then
@@ -88,6 +87,8 @@ jobs:
           echo "Extracting APK..."
 
           unzip -q "$apk_zip" -d "$apk_dir"
+
+          echo "APK files:"
 
           find "$apk_dir" \
             -maxdepth 1 \
@@ -133,8 +134,6 @@ jobs:
             -no-snapshot-save
 
           script: |
-            set -e
-
             echo "========================================"
             echo "Android Emulator Information"
             echo "========================================"
@@ -153,43 +152,16 @@ jobs:
             adb shell getprop ro.product.cpu.abilist
 
             echo "========================================"
-            echo "Wait for Android boot"
+            echo "Emulator is ready"
             echo "========================================"
 
-            boot_completed=""
-
-            for i in $(seq 1 60); do
-              boot_completed="$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r' || true)"
-
-              if [ "$boot_completed" = "1" ]; then
-                echo "Android boot completed"
-                break
-              fi
-
-              echo "Waiting for Android boot... $i/60"
-              sleep 2
-            done
-
-            if [ "$boot_completed" != "1" ]; then
-              echo "Android emulator failed to complete boot"
-              exit 1
-            fi
-
-            echo "========================================"
-            echo "Prepare emulator"
-            echo "========================================"
-
-            adb shell input keyevent KEYCODE_WAKEUP || true
-            adb shell wm dismiss-keyguard || true
+            sleep 5
 
             echo "========================================"
             echo "Install application"
             echo "========================================"
 
-            adb install-multiple -r \
-              "$RUNNER_TEMP/edot-apk/base.apk" \
-              "$RUNNER_TEMP/edot-apk/split_config.arm64_v8a.apk" \
-              "$RUNNER_TEMP/edot-apk/split_config.xxhdpi.apk"
+            adb install-multiple -r "$RUNNER_TEMP/edot-apk/base.apk" "$RUNNER_TEMP/edot-apk/split_config.arm64_v8a.apk" "$RUNNER_TEMP/edot-apk/split_config.xxhdpi.apk"
 
             echo "========================================"
             echo "Verify package"
@@ -201,23 +173,13 @@ jobs:
             echo "Launch application"
             echo "========================================"
 
-            adb shell am force-stop "$APP_ID" || true
+            adb shell am force-stop "$APP_ID"
 
-            adb shell monkey \
-              -p "$APP_ID" \
-              -c android.intent.category.LAUNCHER \
-              1
+            adb shell monkey -p "$APP_ID" -c android.intent.category.LAUNCHER 1
 
-            echo "Waiting for application..."
+            echo "Application launched"
+
             sleep 8
-
-            echo "========================================"
-            echo "Application state"
-            echo "========================================"
-
-            adb shell dumpsys activity activities \
-              | grep -E "mResumedActivity|mFocusedApp" \
-              || true
 
             echo "========================================"
             echo "Run Maestro automation"
@@ -225,7 +187,7 @@ jobs:
 
             cd "$GITHUB_WORKSPACE/Maestro"
 
-            PYTHONUNBUFFERED=1 make test
+            make test
 
       - name: Generate Allure report
         if: always()
@@ -240,6 +202,7 @@ jobs:
               --clean \
               -o Maestro/allure-report \
               || echo "Allure report generation failed."
+
           else
             echo "No Allure results found."
           fi
