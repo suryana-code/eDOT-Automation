@@ -59,7 +59,10 @@ def run_maestro(env):
     run_id = uuid4().hex
 
     evidence_dir = RECORDINGS_DIR / run_id
-    evidence_dir.mkdir(parents=True, exist_ok=False)
+    evidence_dir.mkdir(
+        parents=True,
+        exist_ok=False,
+    )
 
     execution_env = env.copy()
     execution_env["MAESTRO_EVIDENCE_RUN_ID"] = run_id
@@ -162,7 +165,8 @@ def _prepare_recording(
     if original_video_metadata:
 
         compressed_video_path = (
-            evidence_dir / f"{stem}-compressed.mp4"
+            evidence_dir
+            / f"{stem}-compressed.mp4"
         )
 
         if _compress_video(
