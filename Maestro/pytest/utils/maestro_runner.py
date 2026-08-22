@@ -4,6 +4,7 @@ import shutil
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
+from typing import List, Optional, Tuple
 from uuid import uuid4
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -38,16 +39,16 @@ class MaestroExecution:
     result: subprocess.CompletedProcess
     evidence_dir: Path
     output_path: Path
-    recordings: list["MaestroRecording"]
+    recordings: List["MaestroRecording"]
 
 
 @dataclass
 class MaestroRecording:
     name: str
-    original_video_path: Path | None
-    attached_video_path: Path | None
-    original_video_metadata: tuple[int, int] | None
-    attached_video_metadata: tuple[int, int] | None
+    original_video_path: Optional[Path]
+    attached_video_path: Optional[Path]
+    original_video_metadata: Optional[Tuple[int, int]]
+    attached_video_metadata: Optional[Tuple[int, int]]
 
 
 def run_maestro(env):
@@ -206,8 +207,8 @@ def _prepare_recording(
 
 
 def _video_metadata(
-    video_path: Path | None,
-) -> tuple[int, int] | None:
+    video_path: Optional[Path],
+) -> Optional[Tuple[int, int]]:
 
     """
     Mengembalikan dimensi video jika ffprobe
