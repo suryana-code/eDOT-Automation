@@ -5,10 +5,12 @@ appId: ${APP_ID}
     visible: "New Customer List"
     timeout: 15000
 
+- tapOn: "Waiting for Approval"
+
 - scrollUntilVisible:
     element: "${OUTLET_NAME}"
     direction: DOWN
-    timeout: 80000
+    timeout: 100000
     speed: 60
     visibilityPercentage: 50
     centerElement: true
