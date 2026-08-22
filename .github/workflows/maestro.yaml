@@ -84,8 +84,8 @@ jobs:
         run: |
           set -euo pipefail
 
-          APK_ZIP="$RUNNER_TEMP/edot-maestro-apk.zip"
-          APK_DIR="$RUNNER_TEMP/edot-apk"
+          APK_ZIP="$GITHUB_WORKSPACE/edot-maestro-apk.zip"
+          APK_DIR="$GITHUB_WORKSPACE/.ci/edot-apk"
 
           rm -rf "$APK_DIR"
           mkdir -p "$APK_DIR"
@@ -101,6 +101,10 @@ jobs:
             --retry-all-errors \
             --output "$APK_ZIP" \
             "https://github.com/suryana-code/eDOT-Automation/releases/download/maestro-ci-v1/edot-maestro-apk.zip"
+
+          echo "APK ZIP:"
+          ls -lh "$APK_ZIP"
+
 
           echo "========================================"
           echo "VERIFY SHA-256"
@@ -120,6 +124,7 @@ jobs:
 
           echo "SHA-256 verification passed"
 
+
           echo "========================================"
           echo "EXTRACT APK"
           echo "========================================"
@@ -129,6 +134,7 @@ jobs:
           echo "APK directory:"
           ls -lah "$APK_DIR"
 
+
           echo "========================================"
           echo "VERIFY APK FILES"
           echo "========================================"
@@ -137,12 +143,19 @@ jobs:
           test -f "$APK_DIR/split_config.arm64_v8a.apk"
           test -f "$APK_DIR/split_config.xxhdpi.apk"
 
+          echo "All APK files exist."
+
           ls -lh \
             "$APK_DIR/base.apk" \
             "$APK_DIR/split_config.arm64_v8a.apk" \
             "$APK_DIR/split_config.xxhdpi.apk"
 
-          echo "APK verification passed"
+
+          echo "========================================"
+          echo "APK READY"
+          echo "========================================"
+
+          echo "APK directory: $APK_DIR"
 
       # ============================================================
       # ENABLE KVM
@@ -159,7 +172,7 @@ jobs:
           ls -la /dev/kvm
 
       # ============================================================
-      # ANDROID EMULATOR
+      # ANDROID EMULATOR + MAESTRO
       # ============================================================
 
       - name: Start emulator and run Maestro
@@ -223,31 +236,49 @@ jobs:
 
 
             # ========================================================
-            # VERIFY APK
+            # APK PATH
             # ========================================================
 
             echo "========================================"
-            echo "VERIFY APK"
+            echo "SET APK PATH"
             echo "========================================"
 
-            APK_DIR="$RUNNER_TEMP/edot-apk"
+            APK_DIR="$GITHUB_WORKSPACE/.ci/edot-apk"
 
             BASE_APK="$APK_DIR/base.apk"
             ARM64_APK="$APK_DIR/split_config.arm64_v8a.apk"
             XXHDPI_APK="$APK_DIR/split_config.xxhdpi.apk"
 
+            echo "GITHUB_WORKSPACE:"
+            echo "$GITHUB_WORKSPACE"
+
+            echo "APK_DIR:"
+            echo "$APK_DIR"
+
+
+            # ========================================================
+            # VERIFY APK FROM EMULATOR STEP
+            # ========================================================
+
+            echo "========================================"
+            echo "VERIFY APK FROM EMULATOR STEP"
+            echo "========================================"
+
+            echo "APK directory contents:"
+
+            ls -lah "$GITHUB_WORKSPACE/.ci"
+            ls -lah "$APK_DIR"
+
+            echo "Checking base APK:"
             test -f "$BASE_APK"
+
+            echo "Checking ARM64 APK:"
             test -f "$ARM64_APK"
+
+            echo "Checking XXHDPI APK:"
             test -f "$XXHDPI_APK"
 
-            echo "Base APK:"
-            ls -lh "$BASE_APK"
-
-            echo "ARM64 split:"
-            ls -lh "$ARM64_APK"
-
-            echo "XXHDPI split:"
-            ls -lh "$XXHDPI_APK"
+            echo "All APK files are accessible."
 
 
             # ========================================================
@@ -258,9 +289,9 @@ jobs:
             echo "INSTALL APPLICATION"
             echo "========================================"
 
-            echo "Installing split APKs..."
+            echo "Installing APK splits..."
 
-            adb install-multiple \
+            adb install-multiple -r \
               "$BASE_APK" \
               "$ARM64_APK" \
               "$XXHDPI_APK"
@@ -326,7 +357,7 @@ jobs:
 
 
             # ========================================================
-            # VERIFY PYTHON / PYTEST
+            # PYTHON / PYTEST
             # ========================================================
 
             echo "========================================"
@@ -338,7 +369,7 @@ jobs:
 
 
             # ========================================================
-            # RUN MAESTRO TEST
+            # RUN MAESTRO
             # ========================================================
 
             echo "========================================"
@@ -348,7 +379,7 @@ jobs:
             make -C "$GITHUB_WORKSPACE/Maestro" test
 
       # ============================================================
-      # SHOW DEBUG FILES
+      # SHOW MAESTRO DEBUG FILES
       # ============================================================
 
       - name: Show Maestro debug files
