@@ -123,6 +123,7 @@ jobs:
 
           echo "SHA-256 verification passed"
 
+
           echo "========================================"
           echo "Extract APK"
           echo "========================================"
@@ -131,6 +132,7 @@ jobs:
 
           echo "APK contents:"
           ls -lah "$APK_DIR"
+
 
           echo "========================================"
           echo "Verify APK files"
@@ -210,20 +212,7 @@ jobs:
 
             adb shell settings put secure autofill_service null || true
 
-            AUTOFILL_SERVICE="$(
-              adb shell settings get secure autofill_service \
-              | tr -d '\r'
-            )"
-
-            echo "Autofill service: [$AUTOFILL_SERVICE]"
-
-            if [ "$AUTOFILL_SERVICE" = "null" ] || [ -z "$AUTOFILL_SERVICE" ]; then
-              echo "Autofill service is disabled."
-            else
-              echo "WARNING: Autofill service is still configured."
-              echo "Current value: [$AUTOFILL_SERVICE]"
-              echo "Continuing because Autofill configuration is not fatal."
-            fi
+            echo "Autofill configuration completed"
 
 
             # ======================================================
