@@ -9,6 +9,7 @@ from uuid import uuid4
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 RECORDINGS_DIR = PROJECT_ROOT / "recordings"
+DEBUG_DIR = PROJECT_ROOT / "debug"
 DEFAULT_VIDEO_CRF = "23"
 
 
@@ -64,6 +65,11 @@ def run_maestro(env):
         parents=True,
         exist_ok=False,
     )
+    debug_dir = DEBUG_DIR / run_id
+    debug_dir.mkdir(
+        parents=True,
+        exist_ok=False,
+    )
 
     execution_env = env.copy()
     execution_env["MAESTRO_EVIDENCE_RUN_ID"] = run_id
@@ -73,6 +79,11 @@ def run_maestro(env):
         "test",
         "-p",
         "android",
+        "--debug-output",
+        str(debug_dir),
+        "--test-output-dir",
+        str(debug_dir / "test-output"),
+        "--flatten-debug-output",
     ]
 
     for key in MAESTRO_ENV_KEYS:
