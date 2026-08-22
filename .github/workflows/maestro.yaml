@@ -61,9 +61,7 @@ jobs:
       - name: Install Maestro
         run: |
           curl -Ls https://get.maestro.mobile.dev | bash
-
           echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
-
           "$HOME/.maestro/bin/maestro" --version
 
       # ============================================================
@@ -102,7 +100,7 @@ jobs:
             --output "$APK_ZIP" \
             "https://github.com/suryana-code/eDOT-Automation/releases/download/maestro-ci-v1/edot-maestro-apk.zip"
 
-          echo "APK ZIP:"
+          echo "Downloaded ZIP:"
           ls -lh "$APK_ZIP"
 
 
@@ -131,8 +129,8 @@ jobs:
 
           unzip -q "$APK_ZIP" -d "$APK_DIR"
 
-          echo "APK directory:"
-          ls -lah "$APK_DIR"
+          echo "Extracted files:"
+          find "$APK_DIR" -maxdepth 1 -type f -print
 
 
           echo "========================================"
@@ -150,13 +148,6 @@ jobs:
             "$APK_DIR/split_config.arm64_v8a.apk" \
             "$APK_DIR/split_config.xxhdpi.apk"
 
-
-          echo "========================================"
-          echo "APK READY"
-          echo "========================================"
-
-          echo "APK directory: $APK_DIR"
-
       # ============================================================
       # ENABLE KVM
       # ============================================================
@@ -172,7 +163,7 @@ jobs:
           ls -la /dev/kvm
 
       # ============================================================
-      # ANDROID EMULATOR + MAESTRO
+      # START EMULATOR + MAESTRO
       # ============================================================
 
       - name: Start emulator and run Maestro
@@ -198,8 +189,6 @@ jobs:
             -no-snapshot-save
 
           script: |
-
-            set -e
 
             echo "========================================"
             echo "ANDROID ENVIRONMENT"
@@ -228,55 +217,63 @@ jobs:
             echo "========================================"
 
             test -n "$APP_ID"
+
             test -n "$COMPANY_ID"
+
             test -n "$USER_NAME"
+
             test -n "$PASSWORD"
 
             echo "Environment variables are configured"
 
 
             # ========================================================
-            # APK PATH
+            # VERIFY APK DIRECTORY
+            #
+            # IMPORTANT:
+            # Do NOT assign APK_DIR here.
+            # android-emulator-runner executes script commands
+            # independently.
             # ========================================================
 
             echo "========================================"
-            echo "SET APK PATH"
+            echo "VERIFY APK DIRECTORY"
             echo "========================================"
-
-            APK_DIR="$GITHUB_WORKSPACE/.ci/edot-apk"
-
-            BASE_APK="$APK_DIR/base.apk"
-            ARM64_APK="$APK_DIR/split_config.arm64_v8a.apk"
-            XXHDPI_APK="$APK_DIR/split_config.xxhdpi.apk"
 
             echo "GITHUB_WORKSPACE:"
             echo "$GITHUB_WORKSPACE"
 
-            echo "APK_DIR:"
-            echo "$APK_DIR"
-
-
-            # ========================================================
-            # VERIFY APK FROM EMULATOR STEP
-            # ========================================================
-
-            echo "========================================"
-            echo "VERIFY APK FROM EMULATOR STEP"
-            echo "========================================"
+            echo "APK DIRECTORY:"
+            echo "$GITHUB_WORKSPACE/.ci/edot-apk"
 
             echo "APK directory contents:"
 
-            ls -lah "$GITHUB_WORKSPACE/.ci"
-            ls -lah "$APK_DIR"
+            ls -lah \
+              "$GITHUB_WORKSPACE/.ci/edot-apk"
 
-            echo "Checking base APK:"
-            test -f "$BASE_APK"
 
-            echo "Checking ARM64 APK:"
-            test -f "$ARM64_APK"
+            # ========================================================
+            # VERIFY APK FILES
+            # ========================================================
 
-            echo "Checking XXHDPI APK:"
-            test -f "$XXHDPI_APK"
+            echo "========================================"
+            echo "VERIFY APK FILES"
+            echo "========================================"
+
+            echo "Checking base.apk"
+
+            test -f \
+              "$GITHUB_WORKSPACE/.ci/edot-apk/base.apk"
+
+            echo "Checking split_config.arm64_v8a.apk"
+
+            test -f \
+              "$GITHUB_WORKSPACE/.ci/edot-apk/split_config.arm64_v8a.apk"
+
+            echo "Checking split_config.xxhdpi.apk"
+
+            test -f \
+              "$GITHUB_WORKSPACE/.ci/edot-apk/split_config.xxhdpi.apk"
 
             echo "All APK files are accessible."
 
@@ -289,12 +286,10 @@ jobs:
             echo "INSTALL APPLICATION"
             echo "========================================"
 
-            echo "Installing APK splits..."
-
             adb install-multiple -r \
-              "$BASE_APK" \
-              "$ARM64_APK" \
-              "$XXHDPI_APK"
+              "$GITHUB_WORKSPACE/.ci/edot-apk/base.apk" \
+              "$GITHUB_WORKSPACE/.ci/edot-apk/split_config.arm64_v8a.apk" \
+              "$GITHUB_WORKSPACE/.ci/edot-apk/split_config.xxhdpi.apk"
 
             echo "Application installed successfully"
 
@@ -323,9 +318,9 @@ jobs:
               -c android.intent.category.LAUNCHER \
               1
 
-            sleep 8
-
             echo "Application launched"
+
+            sleep 8
 
 
             # ========================================================
@@ -350,7 +345,9 @@ jobs:
             echo "========================================"
 
             test -d "$GITHUB_WORKSPACE/Maestro"
+
             test -f "$GITHUB_WORKSPACE/Maestro/Makefile"
+
             test -f "$GITHUB_WORKSPACE/Maestro/pytest/test_mobile.py"
 
             echo "Maestro project verified"
@@ -365,6 +362,7 @@ jobs:
             echo "========================================"
 
             python --version
+
             pytest --version
 
 
@@ -379,7 +377,7 @@ jobs:
             make -C "$GITHUB_WORKSPACE/Maestro" test
 
       # ============================================================
-      # SHOW MAESTRO DEBUG FILES
+      # MAESTRO DEBUG FILES
       # ============================================================
 
       - name: Show Maestro debug files
@@ -399,7 +397,7 @@ jobs:
           fi
 
       # ============================================================
-      # GENERATE ALLURE REPORT
+      # ALLURE REPORT
       # ============================================================
 
       - name: Generate Allure report
