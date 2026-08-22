@@ -7,9 +7,7 @@ from pathlib import Path
 from uuid import uuid4
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-
 RECORDINGS_DIR = PROJECT_ROOT / "recordings"
-
 DEFAULT_VIDEO_CRF = "23"
 
 
@@ -54,50 +52,21 @@ class MaestroRecording:
 
 def run_maestro(env):
     """
-    Menjalankan flow utama Maestro.
-
-    Semua environment variable yang dibutuhkan diteruskan
-    secara eksplisit ke Maestro.
-
-    Debug output dan test output diarahkan ke folder recordings
-    agar dapat di-upload sebagai GitHub Actions artifact.
+    Menjalankan flow utama Maestro dan meneruskan
+    environment variable yang dibutuhkan ke Maestro.
     """
 
     run_id = uuid4().hex
 
     evidence_dir = RECORDINGS_DIR / run_id
-    evidence_dir.mkdir(
-        parents=True,
-        exist_ok=False,
-    )
-
-    debug_dir = evidence_dir / "debug"
-    test_output_dir = evidence_dir / "test-output"
-
-    debug_dir.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-
-    test_output_dir.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
+    evidence_dir.mkdir(parents=True, exist_ok=False)
 
     execution_env = env.copy()
-
     execution_env["MAESTRO_EVIDENCE_RUN_ID"] = run_id
 
     command = [
         "maestro",
         "test",
-
-        "--debug-output",
-        str(debug_dir),
-
-        "--test-output-dir",
-        str(test_output_dir),
-
         "-p",
         "android",
     ]
@@ -106,16 +75,14 @@ def run_maestro(env):
         value = execution_env.get(key)
 
         if value is not None:
-            command.extend(
-                [
-                    "-e",
-                    f"{key}={value}",
-                ]
-            )
+            command.extend([
+                "-e",
+                f"{key}={value}",
+            ])
 
-    flow_path = PROJECT_ROOT / "flows" / "main.yaml"
-
-    command.append(str(flow_path))
+    command.append(
+        str(PROJECT_ROOT / "flows" / "main.yaml")
+    )
 
     try:
         result = subprocess.run(
@@ -134,29 +101,20 @@ def run_maestro(env):
             stderr=str(error),
         )
 
-    output_path = evidence_dir / "maestro-execution-output.txt"
-
-    safe_command = [
-        "maestro",
-        "test",
-        "--debug-output",
-        str(debug_dir),
-        "--test-output-dir",
-        str(test_output_dir),
-        "-p",
-        "android",
-        "<environment variables hidden>",
-        str(flow_path),
-    ]
+    output_path = (
+        evidence_dir / "maestro-execution-output.txt"
+    )
 
     output_path.write_text(
-        "Command:\n"
-        + " ".join(safe_command)
-        + "\n\n"
-        + "--- stdout ---\n"
+        "Command: "
+        + " ".join(
+            command[:4]
+            + ["<environment variables>"]
+            + command[-1:]
+        )
+        + "\n\n--- stdout ---\n"
         + result.stdout
-        + "\n\n"
-        + "--- stderr ---\n"
+        + "\n\n--- stderr ---\n"
         + result.stderr,
         encoding="utf-8",
     )
@@ -181,7 +139,9 @@ def _prepare_recording(
     stem: str,
 ) -> MaestroRecording:
 
-    original_video_path = evidence_dir / f"{stem}.mp4"
+    original_video_path = (
+        evidence_dir / f"{stem}.mp4"
+    )
 
     if not original_video_path.is_file():
         return MaestroRecording(
@@ -215,14 +175,12 @@ def _prepare_recording(
             )
 
             try:
-
                 if (
                     compressed_metadata
                     == original_video_metadata
                     and compressed_video_path.stat().st_size
                     < original_video_path.stat().st_size
                 ):
-
                     attached_video_path = (
                         compressed_video_path
                     )
@@ -252,14 +210,13 @@ def _video_metadata(
     dapat membaca file MP4.
     """
 
-    if (
-        not video_path
-        or not shutil.which("ffprobe")
-    ):
+    if not video_path:
+        return None
+
+    if not shutil.which("ffprobe"):
         return None
 
     try:
-
         probe = subprocess.run(
             [
                 "ffprobe",
@@ -284,7 +241,6 @@ def _video_metadata(
         return None
 
     try:
-
         stream = json.loads(
             probe.stdout
         )["streams"][0]
@@ -311,44 +267,36 @@ def _compress_video(
 
     """
     Mengompresi video menggunakan H.264
-    tanpa mengubah resolusi.
+    tanpa mengubah resolusi video.
     """
 
-    if (
-        not shutil.which("ffmpeg")
-        or not shutil.which("ffprobe")
-    ):
+    if not shutil.which("ffmpeg"):
+        return False
+
+    if not shutil.which("ffprobe"):
         return False
 
     try:
-
         compression = subprocess.run(
             [
                 "ffmpeg",
                 "-y",
                 "-i",
                 str(original_video_path),
-
                 "-map",
                 "0:v:0",
-
                 "-c:v",
                 "libx264",
-
                 "-preset",
                 "medium",
-
                 "-crf",
                 os.getenv(
                     "MAESTRO_VIDEO_CRF",
                     DEFAULT_VIDEO_CRF,
                 ),
-
                 "-an",
-
                 "-movflags",
                 "+faststart",
-
                 str(compressed_video_path),
             ],
             capture_output=True,
