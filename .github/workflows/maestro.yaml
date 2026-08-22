@@ -61,8 +61,11 @@ jobs:
       - name: Install Maestro 2.6.1
         run: |
           export MAESTRO_VERSION=2.6.1
+
           curl -Ls https://get.maestro.mobile.dev | bash
+
           echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+
           "$HOME/.maestro/bin/maestro" --version
 
       # ============================================================
@@ -187,71 +190,102 @@ jobs:
 
             adb devices
 
+            echo "Android SDK:"
             adb shell getprop ro.build.version.sdk
 
+            echo "Primary ABI:"
             adb shell getprop ro.product.cpu.abi
 
+            echo "Supported ABIs:"
             adb shell getprop ro.product.cpu.abilist
+
+
+            # ======================================================
+            # Disable Autofill
+            # ======================================================
 
             echo "========================================"
             echo "DISABLE AUTOFILL"
             echo "========================================"
 
-            adb shell settings put secure autofill_service null
+            adb shell settings put secure autofill_service null || true
 
-            AUTOFILL_SERVICE="$(adb shell settings get secure autofill_service | tr -d '\r')"
+            AUTOFILL_SERVICE="$(
+              adb shell settings get secure autofill_service \
+              | tr -d '\r'
+            )"
 
-            test "$AUTOFILL_SERVICE" = "null"
+            echo "Autofill service: [$AUTOFILL_SERVICE]"
 
+            if [ "$AUTOFILL_SERVICE" = "null" ] || [ -z "$AUTOFILL_SERVICE" ]; then
+              echo "Autofill service is disabled."
+            else
+              echo "WARNING: Autofill service is still configured."
+              echo "Current value: [$AUTOFILL_SERVICE]"
+              echo "Continuing because Autofill configuration is not fatal."
+            fi
+
+
+            # ======================================================
+            # Verify environment
+            # ======================================================
 
             echo "========================================"
             echo "VERIFY ENVIRONMENT"
             echo "========================================"
 
             test -n "$APP_ID"
-
             test -n "$COMPANY_ID"
-
             test -n "$USER_NAME"
-
             test -n "$PASSWORD"
 
             echo "Environment variables are configured"
 
+
+            # ======================================================
+            # Verify APK
+            # ======================================================
 
             echo "========================================"
             echo "VERIFY APK"
             echo "========================================"
 
             echo "APK directory:"
-
             echo "$RUNNER_TEMP/edot-apk"
 
             ls -lah "$RUNNER_TEMP/edot-apk"
 
             test -f "$RUNNER_TEMP/edot-apk/base.apk"
-
             test -f "$RUNNER_TEMP/edot-apk/split_config.arm64_v8a.apk"
-
             test -f "$RUNNER_TEMP/edot-apk/split_config.xxhdpi.apk"
 
             ls -lh "$RUNNER_TEMP/edot-apk/base.apk"
-
             ls -lh "$RUNNER_TEMP/edot-apk/split_config.arm64_v8a.apk"
-
             ls -lh "$RUNNER_TEMP/edot-apk/split_config.xxhdpi.apk"
 
             echo "APK verification passed"
 
 
+            # ======================================================
+            # Install application
+            # ======================================================
+
             echo "========================================"
             echo "INSTALL APPLICATION"
             echo "========================================"
 
-            adb install-multiple -r "$RUNNER_TEMP/edot-apk/base.apk" "$RUNNER_TEMP/edot-apk/split_config.arm64_v8a.apk" "$RUNNER_TEMP/edot-apk/split_config.xxhdpi.apk"
+            adb install-multiple \
+              -r \
+              "$RUNNER_TEMP/edot-apk/base.apk" \
+              "$RUNNER_TEMP/edot-apk/split_config.arm64_v8a.apk" \
+              "$RUNNER_TEMP/edot-apk/split_config.xxhdpi.apk"
 
             echo "Application installed successfully"
 
+
+            # ======================================================
+            # Verify package
+            # ======================================================
 
             echo "========================================"
             echo "VERIFY PACKAGE"
@@ -262,27 +296,40 @@ jobs:
             echo "Package verification completed"
 
 
+            # ======================================================
+            # Launch application
+            # ======================================================
+
             echo "========================================"
             echo "LAUNCH APPLICATION"
             echo "========================================"
 
-            adb shell monkey -p "$APP_ID" -c android.intent.category.LAUNCHER 1
+            adb shell monkey \
+              -p "$APP_ID" \
+              -c android.intent.category.LAUNCHER \
+              1
 
             echo "Application launched"
 
+
+            # ======================================================
+            # Verify Maestro project
+            # ======================================================
 
             echo "========================================"
             echo "VERIFY MAESTRO PROJECT"
             echo "========================================"
 
             test -d "$GITHUB_WORKSPACE/Maestro"
-
             test -f "$GITHUB_WORKSPACE/Maestro/Makefile"
-
             test -f "$GITHUB_WORKSPACE/Maestro/pytest/test_mobile.py"
 
             echo "Maestro project verified"
 
+
+            # ======================================================
+            # Maestro directory
+            # ======================================================
 
             echo "========================================"
             echo "MAESTRO DIRECTORY"
@@ -291,6 +338,10 @@ jobs:
             ls -lah "$GITHUB_WORKSPACE/Maestro"
 
 
+            # ======================================================
+            # Pytest directory
+            # ======================================================
+
             echo "========================================"
             echo "PYTEST DIRECTORY"
             echo "========================================"
@@ -298,14 +349,21 @@ jobs:
             ls -lah "$GITHUB_WORKSPACE/Maestro/pytest"
 
 
+            # ======================================================
+            # Python / Pytest
+            # ======================================================
+
             echo "========================================"
             echo "PYTHON / PYTEST"
             echo "========================================"
 
             python --version
-
             pytest --version
 
+
+            # ======================================================
+            # Run Maestro test
+            # ======================================================
 
             echo "========================================"
             echo "RUN MAESTRO TEST"
@@ -403,6 +461,7 @@ jobs:
         with:
           name: maestro-debug-output
           path: /home/runner/.maestro/
+          include-hidden-files: true
           if-no-files-found: warn
 
       # ============================================================
