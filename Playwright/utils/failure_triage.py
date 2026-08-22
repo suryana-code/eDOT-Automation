@@ -16,10 +16,8 @@ from dotenv import load_dotenv
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
 try:
-    # Import paket yang digunakan oleh Pytest dan modul project lain.
     from utils.ai_helper import AI_API_KEY_ENV, AI_MODEL_ENV, DEFAULT_MODEL, AIDataGenerator
 except ModuleNotFoundError:  # pragma: no cover - direct `python utils/...` entry point
-    # Import script langsung yang digunakan oleh `make triage`.
     from ai_helper import AI_API_KEY_ENV, AI_MODEL_ENV, DEFAULT_MODEL, AIDataGenerator
 
 

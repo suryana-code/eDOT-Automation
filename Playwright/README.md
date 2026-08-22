@@ -24,7 +24,7 @@ Project ini mencakup:
 Bukan fokus project ini:
 
 - coverage API atau database
-- CI/CD pipeline
+- CI Maestro atau combined report remote
 - test paralel multi-browser
 - regression suite yang lengkap untuk semua halaman
 
@@ -166,7 +166,7 @@ make clean
   - membuka halaman detail dan memverifikasi Tier 2 data company, termasuk Postal Code
   - menjalankan cleanup delete untuk company yang dibuat
 
-## Known Product Issue — Penghapusan Company
+## Known Issue Produk — Penghapusan Company
 
 **Perilaku yang diharapkan:** company yang sudah dihapus tidak lagi muncul pada **Companies** list setelah halaman di-refresh/reload.
 
@@ -213,6 +213,8 @@ Workflow akan:
 3. Generate Allure Report
 4. Upload Allure Results sebagai artifact
 5. Publish Allure Report ke GitHub Pages
+
+Workflow aktif ini khusus Playwright. Maestro dan combined Allure report tetap dijalankan secara lokal.
 
 ### Live Report
 

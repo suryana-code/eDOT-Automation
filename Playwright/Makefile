@@ -1,14 +1,14 @@
 .PHONY: test headed allure allure-headed allure-ci triage clean
 
-# Menjalankan seluruh test dalam mode headless.
+# Menjalankan seluruh test dalam mode headless
 test:
 	pytest
 
-# Menjalankan test dengan UI browser.
+# Menjalankan test dengan UI browser
 headed:
 	pytest -v -s --headed
 
-# Menjalankan test dan membuka Allure Report.
+# Menjalankan test dan membuka Allure Report
 allure:
 	rm -rf allure-results allure-report
 	pytest --alluredir=allure-results || TEST_EXIT=$$?; \
@@ -16,7 +16,7 @@ allure:
 	allure open allure-report; \
 	exit $${TEST_EXIT:-0}
 
-# Menjalankan test mode headed dan membuka Allure Report.
+# Menjalankan test mode headed dan membuka Allure Report
 allure-headed:
 	rm -rf allure-results allure-report
 	pytest -v -s --headed --alluredir=allure-results || TEST_EXIT=$$?; \
@@ -24,7 +24,7 @@ allure-headed:
 	allure open allure-report; \
 	exit $${TEST_EXIT:-0}
 
-# Menjalankan test untuk CI tanpa membuka browser.
+# Menjalankan test untuk CI tanpa membuka browser
 allure-ci:
 	rm -rf allure-results allure-report
 	pytest --alluredir=allure-results || TEST_EXIT=$$?; \
@@ -38,6 +38,6 @@ triage:
 		--results-dir allure-results \
 		--output triage-report.md
 
-# Menghapus report yang dihasilkan.
+# Menghapus report yang dihasilkan
 clean:
 	rm -rf allure-results allure-report .pytest_cache

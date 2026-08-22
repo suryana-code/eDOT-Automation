@@ -4,7 +4,7 @@ Dokumen ini digunakan untuk mencatat seluruh temuan bug pada automation atau exp
 
 ## Indeks Temuan
 
-| ID      | Title                                                  | Module             | Severity | Priority | Status |
+| ID      | Judul                                                  | Modul              | Severity | Priority | Status |
 | ------- | ------------------------------------------------------ | ------------------ | -------- | -------- | ------ |
 | BUG-001 | Company yang dihapus masih terlihat pada tab `Companies` | Company Management | Major    | High     | Open   |
 
@@ -15,18 +15,18 @@ Salin bagian berikut untuk membuat temuan baru. Ganti ID dengan nomor berikutnya
 ```markdown
 ## BUG-XXX: [Judul bug singkat dan dapat ditindaklanjuti]
 
-### Ringkasan Issue
+### Ringkasan Isu
 
 | Field             | Detail                                         |
 | ----------------- | ---------------------------------------------- |
-| **Issue Type**    | Bug                                            |
+| **Jenis Isu**     | Bug                                            |
 | **Status**        | Open                                           |
 | **Priority**      | High / Medium / Low                            |
 | **Severity**      | Blocker / Critical / Major / Minor / Trivial   |
-| **Module**        | [Feature atau module]                          |
-| **Component**     | [Page, flow, atau component]                   |
+| **Modul**         | [Feature atau modul]                           |
+| **Komponen**      | [Page, flow, atau komponen]                    |
 | **Environment**   | [URL, browser, OS, build, atau test environment] |
-| **Reported Date** | [DD Bulan YYYY]                                |
+| **Tanggal Lapor** | [DD Bulan YYYY]                                |
 | **Reporter**      | [Nama atau tim]                                |
 
 ### Deskripsi
@@ -74,19 +74,19 @@ Salin bagian berikut untuk membuat temuan baru. Ganti ID dengan nomor berikutnya
 
 ## BUG-001: Company yang Dihapus Masih Terlihat pada Tab Companies
 
-### Ringkasan Issue
+### Ringkasan Isu
 
 | Field             | Detail                                                 |
 | ----------------- | ------------------------------------------------------ |
-| **Issue Type**    | Bug                                                    |
-| **Title**         | Company yang dihapus masih terlihat pada tab `Companies` |
+| **Jenis Isu**     | Bug                                                    |
+| **Judul**         | Company yang dihapus masih terlihat pada tab `Companies` |
 | **Status**        | Open                                                   |
 | **Priority**      | High                                                   |
 | **Severity**      | Major                                                  |
-| **Module**        | Company Management                                     |
-| **Component**     | Companies tab / Company deletion                       |
+| **Modul**         | Company Management                                     |
+| **Komponen**      | Companies tab / Company deletion                       |
 | **Environment**   | eDOT web application                                   |
-| **Reported Date** | 19 August 2026                                         |
+| **Tanggal Lapor** | 19 August 2026                                         |
 
 ### Deskripsi
 

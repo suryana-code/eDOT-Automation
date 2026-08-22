@@ -24,7 +24,7 @@ Test mencakup:
 
 Buat file `.env` lokal bersama di root repository (`../.env` saat dijalankan dari `Maestro/`) dengan credential dan konfigurasi aplikasi yang diperlukan oleh flow login:
 
-- `APP_ID` (example: `id.edot.ework`)
+- `APP_ID` (contoh: `id.edot.ework`)
 - `COMPANY_ID`
 - `USER_NAME`
 - `PASSWORD`
@@ -47,29 +47,26 @@ Jalankan command ini dari direktori `Maestro/`. Command tersebut setara dengan:
 pytest -v -s pytest/test_mobile.py
 ```
 
-### CI Maestro
+### Status CI Maestro
 
-Workflow manual tersedia di `.github/workflows/maestro.yaml`. CI memakai Ubuntu, Android Emulator API 35 `google_apis` `x86_64`, dan Maestro `2.6.1`.
+Maestro saat ini tervalidasi untuk eksekusi lokal melalui `make test`. CI Maestro belum aktif karena eksekusi pada GitHub-hosted Android emulator masih gagal dan sedang tidak menjadi bagian dari alur CI yang sukses.
 
-CI tetap memakai wrapper lokal yang sama:
+GitHub Actions dan GitHub Pages yang aktif hanya menjalankan Playwright. Karena itu, report remote saat ini hanya berisi hasil Playwright dan tidak mengklaim hasil Maestro atau combined report.
 
-```bash
-cd Maestro
-make test
-```
-
-Sebelum menjalankan workflow, buat GitHub Secrets berikut:
+Jika CI Maestro diaktifkan kembali, environment CI perlu menyediakan Android emulator, aplikasi `id.edot.ework` dari sumber resmi yang dapat direproduksi, serta GitHub Secrets berikut tanpa menulis nilainya di repository:
 
 - `MAESTRO_APP_ID`
 - `MAESTRO_COMPANY_ID`
 - `MAESTRO_USER_NAME`
 - `MAESTRO_PASSWORD`
-- `MAESTRO_APK_URL`
 - `MAESTRO_APK_SHA256`
 
-`MAESTRO_APK_URL` harus mengarah ke asset GitHub Release `edot-maestro-apk.zip`. ZIP berisi `base.apk`, `split_config.arm64_v8a.apk`, dan `split_config.xxhdpi.apk`. Workflow memverifikasi SHA256, memasang split APK menggunakan `adb install-multiple -r`, lalu memastikan package `id.edot.ework` tersedia sebelum menjalankan test.
+Runner CI harus tetap menjalankan wrapper yang sama dengan lokal:
 
-Workflow meng-upload `allure-results/`, `recordings/`, dan `allure-report/` bila tersedia. Artifact tetap dikumpulkan saat test gagal. Kompatibilitas split ARM64 pada emulator `x86_64` API 35 belum terverifikasi sampai workflow dijalankan pertama kali.
+```bash
+cd Maestro
+make test
+```
 
 ### Allure Report Web + Mobile Gabungan
 
@@ -80,7 +77,7 @@ make test-all
 make generate-all
 ```
 
-`make test-all` menulis result sementara masing-masing framework ke `.allure/playwright-results/` dan `.allure/maestro-results/`, lalu menggabungkan eksekusi saat ini ke `.allure/results/`. `make generate-all` membuat report HTML gabungan di `.allure/report/`. Hal ini tidak mengubah command Maestro individual di atas atau workflow CI Playwright yang sudah ada.
+`make test-all` menulis result sementara masing-masing framework ke `.allure/playwright-results/` dan `.allure/maestro-results/`, lalu menggabungkan eksekusi saat ini ke `.allure/results/`. `make generate-all` membuat report HTML gabungan di `.allure/report/`. Alur ini hanya untuk eksekusi lokal dan tidak mengubah command Maestro individual atau workflow CI Playwright yang sudah ada.
 
 ### Menjalankan Flow Maestro Langsung untuk Debugging Login
 

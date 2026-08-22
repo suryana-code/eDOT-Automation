@@ -116,7 +116,7 @@ class AIDataGenerator:
                     data=validated.model_dump(), source="ai", attempts=attempt
                 )
             except (requests.RequestException, ValueError, ValidationError, KeyError):
-                # Kegagalan di sini hanya memilih data fallback; assertion test tidak pernah diubah.
+                # Kegagalan di sini hanya memilih data fallback; assertion test tetap sama
                 continue
 
         return GeneratedTestData(

@@ -968,12 +968,8 @@ class CompanyPage(BasePage):
 
         company_count = company_cards.count()
 
-        # ==========================================================
-        # WORKAROUND SEMENTARA
-        # ==========================================================
-        # Workaround product issue: card bisa tetap tampil setelah delete
-        # Aktifkan assertion di bawah setelah issue diperbaiki
-        # ==========================================================
+        # Workaround sementara: card dapat tetap tampil setelah delete karena issue produk
+        # Jangan jadikan card sebagai hard assertion sebelum issue diperbaiki
 
         if company_count == 0:
 
@@ -994,16 +990,5 @@ class CompanyPage(BasePage):
                 "⚠ This is a known developer issue. "
                 "Test will NOT be failed temporarily."
             )
-
-        # ==========================================================
-        # AKTIFKAN SETELAH PERBAIKAN DEVELOPER
-        # ==========================================================
-        # expect(
-        #     company_cards
-        # ).to_have_count(
-        #     0,
-        #     timeout=5000
-        # )
-        # ==========================================================
 
         return company_count == 0

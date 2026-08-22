@@ -2,12 +2,14 @@
 
 Repository ini berisi implementasi automation testing sebagai bagian dari **Take Home Test QA Automation Engineer eDOT**.
 
-Project dibagi menjadi dua bagian utama sesuai dengan requirement yang diberikan, yaitu automation untuk Web menggunakan Playwright dan Mobile menggunakan Maestro.
+Proyek dibagi menjadi dua bagian utama sesuai requirement, yaitu automation Web menggunakan Playwright dan Mobile menggunakan Maestro.
 
 ## Struktur Project
 
 ```
 eDOT-Automation
+├── .github/workflows/ # CI Playwright yang aktif
+├── Makefile            # Orkestrasi Allure gabungan lokal
 ├── Playwright/   # Automation Web
 └── Maestro/      # Automation Mobile
 ```
@@ -25,24 +27,24 @@ cd Maestro && make test
 cd Maestro && make allure
 ```
 
-Untuk satu execution lokal yang menggabungkan Playwright dan Maestro ke dalam satu report Allure, jalankan dari root repository:
+Untuk satu eksekusi lokal yang menggabungkan Playwright dan Maestro ke satu report Allure, jalankan dari root repository:
 
 ```bash
-make test-all          # menjalankan Web + Mobile parallel dan merge ke .allure/results/
+make test-all          # menjalankan Web dan Mobile parallel lalu menggabungkan hasil ke .allure/results/
 make generate-all      # membuat .allure/report/ dari hasil yang sudah ada
-make open-all          # membuka combined report
-make allure-all        # menjalankan seluruh alur, generate, lalu membuka report
+make open-all          # membuka report gabungan
+make allure-all        # menjalankan seluruh alur, membuat, lalu membuka report
 ```
 
-`test-all` selalu membersihkan `.allure/` terlebih dahulu agar report hanya memuat execution saat ini. Playwright dan Maestro dijalankan parallel ke `.allure/playwright-results/` dan `.allure/maestro-results/`, lalu digabung ke `.allure/results/`. Jika salah satu gagal, command akhir tetap gagal setelah evidence dikumpulkan.
+`test-all` selalu membersihkan `.allure/` terlebih dahulu agar report hanya memuat eksekusi saat ini. Playwright dan Maestro dijalankan parallel ke `.allure/playwright-results/` dan `.allure/maestro-results/`, lalu digabung ke `.allure/results/`. Jika salah satu gagal, command akhir tetap gagal setelah evidence dikumpulkan.
 
-Evidence dalam combined report tetap melekat pada test asalnya:
+Bukti dalam report gabungan tetap melekat pada test asalnya:
 
 - Playwright failure screenshot berada pada test terkait; setup login failure dapat ditemukan pada `Execution → Set up`
 - Maestro melampirkan `Maestro Execution Output` dan `Maestro Screen Recording` (`video/mp4`) pada step eksekusi Maestro
 - Pada Allure `SUITES`, `Playwright` menandai Web automation dan `Maestro` menandai Mobile automation
 
-Report standalone tetap berada di folder framework masing-masing. Report gabungan adalah workflow lokal; seluruh `.allure/` merupakan runtime artifact dan tidak di-commit. GitHub Actions yang ada tetap menjalankan dan mempublikasikan report Playwright secara terpisah; mobile CI belum dikonfigurasi.
+Report standalone tetap berada di folder framework masing-masing. Report gabungan adalah workflow lokal; seluruh `.allure/` merupakan runtime artifact dan tidak di-commit. GitHub Actions dan GitHub Pages saat ini hanya menjalankan serta mempublikasikan report Playwright. Maestro tetap dijalankan lokal karena eksekusi remote belum stabil.
 
 ---
 
@@ -67,7 +69,7 @@ Dokumentasi lengkap dapat dilihat pada:
 
 > `Playwright/README.md`
 
-### 🚀CI/CD dan Automation Report
+### 🚀 CI/CD dan Automation Report
 
 Project Playwright telah diintegrasikan dengan GitHub Actions sehingga automation akan berjalan secara otomatis setiap kali terdapat perubahan pada branch main.
 
@@ -85,19 +87,21 @@ Workflow yang dijalankan meliputi:
 
 #### GitHub Actions
 
-## ⚙️ https://github.com/suryana-code/eDOT-Automation/actions
+https://github.com/suryana-code/eDOT-Automation/actions
 
 ## 📌 Maestro
 
 Folder **Maestro** berisi implementasi automation testing untuk aplikasi Android **eWork SFA** menggunakan Maestro.
 
-Automation akan mencakup skenario:
+Suite mencakup skenario:
 
 - Login
 - Create Customer
 - Verify Customer
 
 Flow dibuat secara modular agar mudah digunakan kembali dan mudah dikembangkan.
+
+Status saat ini: suite Maestro PASS secara lokal dengan Android device/emulator. Eksekusi Maestro di GitHub Actions belum aktif karena masih ada failure remote yang belum terselesaikan. Karena itu, GitHub Pages saat ini hanya memuat Allure report Playwright.
 
 Dokumentasi lengkap dapat dilihat pada:
 
