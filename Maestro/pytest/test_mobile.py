@@ -76,30 +76,31 @@ def test_create_customer_mobile(ai_customer_data):
     with allure.step("Run Maestro main flow"):
         execution = run_maestro(env)
 
-    # Lampirkan output Maestro
+        # Lampirkan evidence dari run yang sama
+        if execution.output_path.exists():
+            allure.attach.file(
+                str(execution.output_path),
+                name="Maestro Execution Output",
+                attachment_type="text/plain",
+                extension="txt",
+            )
 
-    if execution.output_path and execution.output_path.exists():
-        allure.attach.file(
-            str(execution.output_path),
-            name="Maestro Execution Output",
-            attachment_type="text/plain",
-            extension="txt",
-        )
+        for screenshot in execution.screenshots:
+            allure.attach.file(
+                str(screenshot.path),
+                name=f"Maestro Screenshot - {screenshot.name}",
+                attachment_type="image/png",
+                extension="png",
+            )
 
-    # Lampirkan recording yang tersedia
-
-    for recording in execution.recordings:
-        if recording.attached_video_path:
-            with allure.step(f"{recording.name} evidence"):
-                try:
-                    allure.attach.file(
-                        str(recording.attached_video_path),
-                        name="Maestro Screen Recording",
-                        attachment_type="video/mp4",
-                        extension="mp4",
-                    )
-                except OSError:
-                    pass
+        for recording in execution.recordings:
+            if recording.attached_video_path:
+                allure.attach.file(
+                    str(recording.attached_video_path),
+                    name="Maestro Screen Recording",
+                    attachment_type="video/mp4",
+                    extension="mp4",
+                )
 
     # Tampilkan output agar failure mudah ditelusuri
 

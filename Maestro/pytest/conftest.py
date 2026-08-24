@@ -1,7 +1,8 @@
 
+from pathlib import Path
+
 import allure
 import pytest
-from pathlib import Path
 from dotenv import load_dotenv
 from faker import Faker
 
@@ -21,8 +22,8 @@ def pytest_runtest_setup(item):
 @pytest.fixture
 def ai_customer_data():
     return {
-        "outlet_name": fake.company(),
-        "phone": fake.numerify("08############"),
+        "outlet_name": f"Toko QA{fake.bothify(text='????##').upper()}",
+        "phone": fake.numerify("8############"),
         "email": fake.unique.email(),
         "contact_person": fake.name(),
         "address": fake.street_address(),

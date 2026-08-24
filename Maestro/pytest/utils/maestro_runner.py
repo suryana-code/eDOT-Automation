@@ -41,6 +41,7 @@ class MaestroExecution:
     evidence_dir: Path
     output_path: Path
     recordings: List["MaestroRecording"]
+    screenshots: List["MaestroScreenshot"]
 
 
 @dataclass
@@ -50,6 +51,12 @@ class MaestroRecording:
     attached_video_path: Optional[Path]
     original_video_metadata: Optional[Tuple[int, int]]
     attached_video_metadata: Optional[Tuple[int, int]]
+
+
+@dataclass
+class MaestroScreenshot:
+    name: str
+    path: Path
 
 
 def run_maestro(env):
@@ -141,24 +148,28 @@ def run_maestro(env):
         recordings=[
             _prepare_recording(
                 evidence_dir,
+                debug_dir,
                 "Maestro execution",
                 "maestro-execution",
             ),
         ],
+        screenshots=_collect_screenshots(debug_dir),
     )
 
 
 def _prepare_recording(
     evidence_dir: Path,
+    debug_dir: Path,
     name: str,
     stem: str,
 ) -> MaestroRecording:
 
-    original_video_path = (
-        evidence_dir / f"{stem}.mp4"
+    original_video_path = _find_artifact(
+        debug_dir,
+        f"{stem}.mp4",
     )
 
-    if not original_video_path.is_file():
+    if not original_video_path or not original_video_path.is_file():
         return MaestroRecording(
             name=name,
             original_video_path=None,
@@ -215,6 +226,58 @@ def _prepare_recording(
         original_video_metadata=original_video_metadata,
         attached_video_metadata=attached_video_metadata,
     )
+
+
+def _collect_screenshots(
+    debug_dir: Path,
+) -> List[MaestroScreenshot]:
+    """Mengambil screenshot eksplisit dari output Maestro run saat ini."""
+
+    screenshots = []
+
+    for name, filename in [
+        ("Login Dashboard", "login-dashboard.png"),
+        ("New Customer List", "new-customer-list.png"),
+    ]:
+        screenshot_path = _find_artifact(
+            debug_dir,
+            filename,
+        )
+
+        if screenshot_path:
+            screenshots.append(
+                MaestroScreenshot(
+                    name=name,
+                    path=screenshot_path,
+                )
+            )
+
+    failure_screenshots = sorted(
+        debug_dir.glob("screenshot-*.png"),
+    )
+
+    if failure_screenshots:
+        screenshots.append(
+            MaestroScreenshot(
+                name="Failure Debug",
+                path=failure_screenshots[-1],
+            )
+        )
+
+    return screenshots
+
+
+def _find_artifact(
+    artifact_root: Path,
+    filename: str,
+) -> Optional[Path]:
+    """Mencari artifact Maestro pada output run yang unik."""
+
+    matches = sorted(
+        artifact_root.rglob(filename),
+    )
+
+    return matches[0] if matches else None
 
 
 def _video_metadata(
