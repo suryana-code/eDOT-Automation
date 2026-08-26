@@ -310,10 +310,7 @@ jobs:
             echo "LAUNCH APPLICATION"
             echo "========================================"
 
-            adb shell monkey \
-              -p "$APP_ID" \
-              -c android.intent.category.LAUNCHER \
-              1
+            adb shell monkey -p "$APP_ID" -c android.intent.category.LAUNCHER 1
 
             echo "Application launched"
 
