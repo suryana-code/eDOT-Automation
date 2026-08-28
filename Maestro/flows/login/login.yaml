@@ -19,4 +19,4 @@ appId: ${APP_ID}
 
 - extendedWaitUntil:
     visible: "New Customer"
-    timeout: 50000
+    timeout: 15000

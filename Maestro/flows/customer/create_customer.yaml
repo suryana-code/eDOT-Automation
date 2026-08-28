@@ -1,9 +1,5 @@
 appId: ${APP_ID}
 ---
-- extendedWaitUntil:
-    visible: "New Customer"
-    timeout: 15000
-
 - tapOn: "New Customer"
 
 - extendedWaitUntil:
