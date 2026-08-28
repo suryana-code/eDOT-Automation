@@ -7,6 +7,22 @@ appId: ${APP_ID}
 
 - tapOn: "Waiting for Approval"
 
+# Move quickly toward the bottom of the customer list
+- swipe:
+    start: 50%, 85%
+    end: 50%, 20%
+    duration: 10
+
+- swipe:
+    start: 50%, 85%
+    end: 50%, 20%
+    duration: 10
+
+- swipe:
+    start: 50%, 85%
+    end: 50%, 20%
+    duration: 10
+
 - scrollUntilVisible:
     element: "${OUTLET_NAME}"
     direction: DOWN

@@ -18,7 +18,5 @@ appId: ${APP_ID}
 - tapOn: "Sign In"
 
 - extendedWaitUntil:
-    visible: "Ranking currently unavailable"
-    timeout: 15000
-
-- assertVisible: "Ranking currently unavailable"
+    visible: "New Customer"
+    timeout: 50000

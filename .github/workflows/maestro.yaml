@@ -107,7 +107,6 @@ jobs:
           echo "Downloaded ZIP:"
           ls -lh "$APK_ZIP"
 
-
           echo "========================================"
           echo "VERIFY SHA-256"
           echo "========================================"
@@ -126,7 +125,6 @@ jobs:
 
           echo "SHA-256 verification passed"
 
-
           echo "========================================"
           echo "EXTRACT APK"
           echo "========================================"
@@ -135,7 +133,6 @@ jobs:
 
           echo "Extracted files:"
           find "$APK_DIR" -maxdepth 1 -type f -print
-
 
           echo "========================================"
           echo "VERIFY APK FILES"
@@ -172,17 +169,14 @@ jobs:
 
       - name: Start emulator and run Maestro
         uses: reactivecircus/android-emulator-runner@v2
-
         with:
-          api-level: 35
+          api-level: 30
           target: google_apis
           arch: x86_64
           profile: pixel_5
-
           force-avd-creation: true
           disable-animations: true
           emulator-boot-timeout: 600
-
           emulator-options: >-
             -no-window
             -gpu swiftshader_indirect
@@ -193,13 +187,11 @@ jobs:
             -no-snapshot-save
 
           script: |
-
             echo "========================================"
             echo "ANDROID ENVIRONMENT"
             echo "========================================"
 
             adb devices
-
             adb wait-for-device
 
             echo "SDK:"
@@ -211,7 +203,6 @@ jobs:
             echo "Supported ABIs:"
             adb shell getprop ro.product.cpu.abilist
 
-
             # ========================================================
             # VERIFY ENVIRONMENT
             # ========================================================
@@ -221,75 +212,32 @@ jobs:
             echo "========================================"
 
             test -n "$APP_ID"
-
             test -n "$COMPANY_ID"
-
             test -n "$USER_NAME"
-
             test -n "$PASSWORD"
 
             echo "Environment variables are configured"
 
-
             # ========================================================
-            # VERIFY APK DIRECTORY
-            #
-            # IMPORTANT:
-            # Do NOT assign APK_DIR here.
-            # android-emulator-runner executes script commands
-            # independently.
-            # ========================================================
-
-            echo "========================================"
-            echo "VERIFY APK DIRECTORY"
-            echo "========================================"
-
-            echo "GITHUB_WORKSPACE:"
-            echo "$GITHUB_WORKSPACE"
-
-            echo "APK DIRECTORY:"
-            echo "$GITHUB_WORKSPACE/.ci/edot-apk"
-
-            echo "APK directory contents:"
-
-            ls -lah "$GITHUB_WORKSPACE/.ci/edot-apk"
-
-
-            # ========================================================
-            # VERIFY APK FILES
-            # ========================================================
-
-            echo "========================================"
-            echo "VERIFY APK FILES"
-            echo "========================================"
-
-            echo "Checking base.apk"
-
-            test -f "$GITHUB_WORKSPACE/.ci/edot-apk/base.apk"
-
-            echo "Checking split_config.arm64_v8a.apk"
-
-            test -f "$GITHUB_WORKSPACE/.ci/edot-apk/split_config.arm64_v8a.apk"
-
-            echo "Checking split_config.xxhdpi.apk"
-
-            test -f "$GITHUB_WORKSPACE/.ci/edot-apk/split_config.xxhdpi.apk"
-
-            echo "All APK files are accessible."
-
-
-            # ========================================================
-            # INSTALL APPLICATION
+            # INSTALL APPLICATION (WITH ABI COMPATIBILITY FALLBACK)
             # ========================================================
 
             echo "========================================"
             echo "INSTALL APPLICATION"
             echo "========================================"
 
-            adb install-multiple -r "$GITHUB_WORKSPACE/.ci/edot-apk/base.apk" "$GITHUB_WORKSPACE/.ci/edot-apk/split_config.arm64_v8a.apk" "$GITHUB_WORKSPACE/.ci/edot-apk/split_config.xxhdpi.apk"
+            APK_BASE="$GITHUB_WORKSPACE/.ci/edot-apk/base.apk"
+            APK_ARM="$GITHUB_WORKSPACE/.ci/edot-apk/split_config.arm64_v8a.apk"
+            APK_DPI="$GITHUB_WORKSPACE/.ci/edot-apk/split_config.xxhdpi.apk"
+
+            # Cobalah install multiple split APK standar
+            if ! adb install-multiple -r "$APK_BASE" "$APK_ARM" "$APK_DPI"; then
+              echo "Warning: Split installation with ARM64 failed on x86_64 emulator."
+              echo "Attempting fallback installation without arm64 split config..."
+              adb install-multiple -r "$APK_BASE" "$APK_DPI" || adb install -r "$APK_BASE"
+            fi
 
             echo "Application installed successfully"
-
 
             # ========================================================
             # VERIFY PACKAGE
@@ -301,7 +249,6 @@ jobs:
 
             adb shell pm path "$APP_ID"
 
-
             # ========================================================
             # LAUNCH APPLICATION
             # ========================================================
@@ -312,10 +259,8 @@ jobs:
 
             adb shell monkey -p "$APP_ID" -c android.intent.category.LAUNCHER 1
 
-            echo "Application launched"
-
-            sleep 8
-
+            echo "Application launched, waiting for UI initialization..."
+            sleep 15
 
             # ========================================================
             # DISABLE AUTOFILL
@@ -326,9 +271,7 @@ jobs:
             echo "========================================"
 
             adb shell settings put secure autofill_service null || true
-
             echo "Autofill disabled"
-
 
             # ========================================================
             # VERIFY MAESTRO PROJECT
@@ -339,29 +282,13 @@ jobs:
             echo "========================================"
 
             test -d "$GITHUB_WORKSPACE/Maestro"
-
             test -f "$GITHUB_WORKSPACE/Maestro/Makefile"
-
             test -f "$GITHUB_WORKSPACE/Maestro/pytest/test_mobile.py"
 
             echo "Maestro project verified"
 
-
             # ========================================================
-            # PYTHON / PYTEST
-            # ========================================================
-
-            echo "========================================"
-            echo "PYTHON / PYTEST"
-            echo "========================================"
-
-            python --version
-
-            pytest --version
-
-
-            # ========================================================
-            # RUN MAESTRO
+            # RUN MAESTRO TEST
             # ========================================================
 
             echo "========================================"

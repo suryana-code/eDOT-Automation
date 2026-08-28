@@ -26,8 +26,6 @@ appId: ${APP_ID}
 
 - inputText: ${EMAIL}
 
-- hideKeyboard
-
 - scrollUntilVisible:
     element:
       id: noo_registration_input_contact_person
@@ -48,6 +46,13 @@ appId: ${APP_ID}
     id: noo_registration_input_channel
 
 - tapOn: ${CHANNEL}
+
+- scrollUntilVisible:
+    element:
+      id: noo_registration_input_outlet_type
+    direction: DOWN
+    timeout: 10000
+    visibilityPercentage: 50
 
 # Pilihan tipe outlet
 - tapOn:
