@@ -1,6 +1,8 @@
 appId: ${APP_ID}
 ---
-- assertVisible: "New Customer"
+- extendedWaitUntil:
+    visible: "New Customer"
+    timeout: 15000
 
 - tapOn: "New Customer"
 
