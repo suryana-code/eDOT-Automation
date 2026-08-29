@@ -20,3 +20,6 @@ appId: ${APP_ID}
 - extendedWaitUntil:
     visible: "New Customer"
     timeout: 15000
+
+- swipe:
+    direction: UP
