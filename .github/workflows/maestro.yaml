@@ -164,8 +164,8 @@ jobs:
           ls -la /dev/kvm
 
       # ============================================================
-# START EMULATOR + MAESTRO
-# ============================================================
+      # START EMULATOR + MAESTRO
+      # ============================================================
 
       - name: Start emulator and run Maestro
         uses: reactivecircus/android-emulator-runner@v2
@@ -185,137 +185,137 @@ jobs:
             -camera-back none
             -camera-front none
             -no-snapshot-save
-      
-        script: |
-          echo "========================================"
-          echo "ANDROID ENVIRONMENT"
-          echo "========================================"
-      
-          adb devices
-          adb wait-for-device
-      
-          echo "SDK:"
-          adb shell getprop ro.build.version.sdk
-      
-          echo "Primary ABI:"
-          adb shell getprop ro.product.cpu.abi
-      
-          echo "Supported ABIs:"
-          adb shell getprop ro.product.cpu.abilist
-      
-          # ========================================================
-          # SET SCREEN SIZE
-          # Match local emulator:
-          # Resolution: 1344x2992
-          # Density: 480
-          # ========================================================
-      
-          echo "========================================"
-          echo "CONFIGURE SCREEN"
-          echo "========================================"
-      
-          adb shell wm size 1344x2992
-          adb shell wm density 480
-      
-          echo "Screen configuration:"
-          adb shell wm size
-          adb shell wm density
-      
-          # ========================================================
-          # VERIFY ENVIRONMENT
-          # ========================================================
-      
-          echo "========================================"
-          echo "VERIFY ENVIRONMENT"
-          echo "========================================"
-      
-          test -n "$APP_ID"
-          test -n "$COMPANY_ID"
-          test -n "$USER_NAME"
-          test -n "$PASSWORD"
-      
-          echo "Environment variables are configured"
-      
-          # ========================================================
-          # INSTALL APPLICATION
-          # ========================================================
-      
-          echo "========================================"
-          echo "INSTALL APPLICATION"
-          echo "========================================"
-      
-          adb install-multiple -r \
-            "$GITHUB_WORKSPACE/.ci/edot-apk/base.apk" \
-            "$GITHUB_WORKSPACE/.ci/edot-apk/split_config.arm64_v8a.apk" \
-            "$GITHUB_WORKSPACE/.ci/edot-apk/split_config.xxhdpi.apk" \
-            || adb install-multiple -r \
-            "$GITHUB_WORKSPACE/.ci/edot-apk/base.apk" \
-            "$GITHUB_WORKSPACE/.ci/edot-apk/split_config.xxhdpi.apk" \
-            || adb install -r \
-            "$GITHUB_WORKSPACE/.ci/edot-apk/base.apk"
-      
-          echo "Application installed successfully"
-      
-          # ========================================================
-          # VERIFY PACKAGE
-          # ========================================================
-      
-          echo "========================================"
-          echo "VERIFY PACKAGE"
-          echo "========================================"
-      
-          adb shell pm path "$APP_ID"
-      
-          # ========================================================
-          # LAUNCH APPLICATION
-          # ========================================================
-      
-          echo "========================================"
-          echo "LAUNCH APPLICATION"
-          echo "========================================"
-      
-          adb shell monkey \
-            -p "$APP_ID" \
-            -c android.intent.category.LAUNCHER \
-            1
-      
-          echo "Application launched, waiting for UI initialization..."
-          sleep 15
-      
-          # ========================================================
-          # DISABLE AUTOFILL
-          # ========================================================
-      
-          echo "========================================"
-          echo "DISABLE AUTOFILL"
-          echo "========================================"
-      
-          adb shell settings put secure autofill_service null || true
-          echo "Autofill disabled"
-      
-          # ========================================================
-          # VERIFY MAESTRO PROJECT
-          # ========================================================
-      
-          echo "========================================"
-          echo "VERIFY MAESTRO PROJECT"
-          echo "========================================"
-      
-          test -d "$GITHUB_WORKSPACE/Maestro"
-          test -f "$GITHUB_WORKSPACE/Maestro/Makefile"
-          test -f "$GITHUB_WORKSPACE/Maestro/pytest/test_mobile.py"
-      
-          echo "Maestro project verified"
-      
-          # ========================================================
-          # RUN MAESTRO TEST
-          # ========================================================
-      
-          echo "========================================"
-          echo "RUN MAESTRO TEST"
-          echo "========================================"
-      
-          make -C "$GITHUB_WORKSPACE/Maestro" test
+
+          script: |
+            echo "========================================"
+            echo "ANDROID ENVIRONMENT"
+            echo "========================================"
+
+            adb devices
+            adb wait-for-device
+
+            echo "SDK:"
+            adb shell getprop ro.build.version.sdk
+
+            echo "Primary ABI:"
+            adb shell getprop ro.product.cpu.abi
+
+            echo "Supported ABIs:"
+            adb shell getprop ro.product.cpu.abilist
+
+            # ========================================================
+            # CONFIGURE SCREEN SIZE
+            # Match local emulator
+            # Resolution: 1344x2992
+            # Density: 480
+            # ========================================================
+
+            echo "========================================"
+            echo "CONFIGURE SCREEN"
+            echo "========================================"
+
+            adb shell wm size 1344x2992
+            adb shell wm density 480
+
+            echo "Screen configuration:"
+            adb shell wm size
+            adb shell wm density
+
+            # ========================================================
+            # VERIFY ENVIRONMENT
+            # ========================================================
+
+            echo "========================================"
+            echo "VERIFY ENVIRONMENT"
+            echo "========================================"
+
+            test -n "$APP_ID"
+            test -n "$COMPANY_ID"
+            test -n "$USER_NAME"
+            test -n "$PASSWORD"
+
+            echo "Environment variables are configured"
+
+            # ========================================================
+            # INSTALL APPLICATION
+            # ========================================================
+
+            echo "========================================"
+            echo "INSTALL APPLICATION"
+            echo "========================================"
+
+            adb install-multiple -r \
+              "$GITHUB_WORKSPACE/.ci/edot-apk/base.apk" \
+              "$GITHUB_WORKSPACE/.ci/edot-apk/split_config.arm64_v8a.apk" \
+              "$GITHUB_WORKSPACE/.ci/edot-apk/split_config.xxhdpi.apk" \
+              || adb install-multiple -r \
+              "$GITHUB_WORKSPACE/.ci/edot-apk/base.apk" \
+              "$GITHUB_WORKSPACE/.ci/edot-apk/split_config.xxhdpi.apk" \
+              || adb install -r \
+              "$GITHUB_WORKSPACE/.ci/edot-apk/base.apk"
+
+            echo "Application installed successfully"
+
+            # ========================================================
+            # VERIFY PACKAGE
+            # ========================================================
+
+            echo "========================================"
+            echo "VERIFY PACKAGE"
+            echo "========================================"
+
+            adb shell pm path "$APP_ID"
+
+            # ========================================================
+            # LAUNCH APPLICATION
+            # ========================================================
+
+            echo "========================================"
+            echo "LAUNCH APPLICATION"
+            echo "========================================"
+
+            adb shell monkey \
+              -p "$APP_ID" \
+              -c android.intent.category.LAUNCHER \
+              1
+
+            echo "Application launched, waiting for UI initialization..."
+            sleep 15
+
+            # ========================================================
+            # DISABLE AUTOFILL
+            # ========================================================
+
+            echo "========================================"
+            echo "DISABLE AUTOFILL"
+            echo "========================================"
+
+            adb shell settings put secure autofill_service null || true
+            echo "Autofill disabled"
+
+            # ========================================================
+            # VERIFY MAESTRO PROJECT
+            # ========================================================
+
+            echo "========================================"
+            echo "VERIFY MAESTRO PROJECT"
+            echo "========================================"
+
+            test -d "$GITHUB_WORKSPACE/Maestro"
+            test -f "$GITHUB_WORKSPACE/Maestro/Makefile"
+            test -f "$GITHUB_WORKSPACE/Maestro/pytest/test_mobile.py"
+
+            echo "Maestro project verified"
+
+            # ========================================================
+            # RUN MAESTRO TEST
+            # ========================================================
+
+            echo "========================================"
+            echo "RUN MAESTRO TEST"
+            echo "========================================"
+
+            make -C "$GITHUB_WORKSPACE/Maestro" test
 
       # ============================================================
       # MAESTRO DEBUG FILES
