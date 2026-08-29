@@ -5,6 +5,14 @@ appId: ${APP_ID}
     visible: "New Customer"
     timeout: 30000
 
+- scrollUntilVisible:
+    element:
+      text: "New Customer"
+    direction: DOWN
+    timeout: 20000
+    speed: 40
+    visibilityPercentage: 100
+
 - tapOn: "New Customer"
 
 - extendedWaitUntil:
