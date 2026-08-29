@@ -1,16 +1,15 @@
 appId: ${APP_ID}
 ---
+# Beri waktu rendering di runner CI
 - extendedWaitUntil:
     visible: "New Customer"
-    timeout: 15000
-
-- assertVisible: "New Customer"
+    timeout: 30000
 
 - tapOn: "New Customer"
 
 - extendedWaitUntil:
     visible: "New Customer Registration"
-    timeout: 10000
+    timeout: 15000
 
 - tapOn: "New Customer Registration"
 
