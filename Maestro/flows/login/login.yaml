@@ -22,4 +22,6 @@ appId: ${APP_ID}
     timeout: 15000
 
 - swipe:
-    direction: UP
+    start: 50%, 85%
+    end: 50%, 20%
+    duration: 700
