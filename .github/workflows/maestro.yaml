@@ -203,6 +203,10 @@ jobs:
             echo "Supported ABIs:"
             adb shell getprop ro.product.cpu.abilist
 
+            echo "Screen Size & Density:"
+            adb shell wm size
+            adb shell wm density
+
             # ========================================================
             # VERIFY ENVIRONMENT
             # ========================================================
