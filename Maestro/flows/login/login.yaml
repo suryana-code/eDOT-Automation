@@ -19,12 +19,8 @@ appId: ${APP_ID}
 
 - extendedWaitUntil:
     notVisible:
-      text: "Downloading Master Data"
+      text: "Please Wait"
     timeout: 120000
-
-- extendedWaitUntil:
-    visible: "New Customer"
-    timeout: 20000
 
 - swipe:
     start: 50%, 85%
