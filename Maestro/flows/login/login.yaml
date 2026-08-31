@@ -18,9 +18,14 @@ appId: ${APP_ID}
 - tapOn: "Sign In"
 
 - extendedWaitUntil:
+    visible:
+      text: "Please Wait"
+    timeout: 30000
+
+- extendedWaitUntil:
     notVisible:
       text: "Please Wait"
-    timeout: 120000
+    timeout: 150000
 
 - swipe:
     start: 50%, 85%
