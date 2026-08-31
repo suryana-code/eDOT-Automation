@@ -6,16 +6,20 @@ onFlowStart:
       optional: true
 onFlowComplete:
   - stopRecording
+
 ---
 - launchApp:
     clearState: true
+
 - runFlow:
     file: login/login.yaml
 - takeScreenshot:
     path: "login-dashboard"
     label: "Dashboard setelah login"
+
 - runFlow:
     file: customer/create_customer.yaml
+
 - runFlow:
     file: customer/verify_customer.yaml
 - takeScreenshot:
