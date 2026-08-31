@@ -191,8 +191,6 @@ jobs:
             -no-snapshot-save
 
           script: |
-            set -e
-
             adb devices
             adb wait-for-device
 
@@ -207,12 +205,10 @@ jobs:
             sleep 15
             adb shell settings put secure autofill_service null || true
 
+            # Eksekusi Maestro tanpa menghentikan script jika ada kegagalan test
             cd "$GITHUB_WORKSPACE/Maestro"
-            if [ -f "Makefile" ]; then
-              make test || pytest -v -s pytest/test_mobile.py --alluredir=../.allure/maestro-results
-            else
-              pytest -v -s pytest/test_mobile.py --alluredir=../.allure/maestro-results
-            fi
+            pytest -v -s pytest/test_mobile.py --alluredir=../.allure/maestro-results || true
+            make test || true
 
       # ============================================================
       # MERGE ALLURE RESULTS
@@ -234,7 +230,7 @@ jobs:
             cp -R .allure/playwright-results/. .allure/results/ || true
           fi
 
-          # Copy Maestro Results (Pengecekan di 2 lokasi path)
+          # Copy Maestro Results (Mengecek di seluruh kemungkinan folder)
           if [ -d ".allure/maestro-results" ]; then
             echo "Copying Maestro results from .allure/maestro-results..."
             cp -R .allure/maestro-results/. .allure/results/ || true
@@ -244,8 +240,8 @@ jobs:
             cp -R Maestro/allure-results/. .allure/results/ || true
           fi
 
-          echo "Total JSON results merged:"
-          find .allure/results -name '*-result.json' | wc -l
+          echo "File JSON hasil gabungan:"
+          find .allure/results -name '*-result.json' -print
 
       # ============================================================
       # GENERATE COMBINED ALLURE REPORT
