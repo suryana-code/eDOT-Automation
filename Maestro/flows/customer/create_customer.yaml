@@ -140,6 +140,8 @@ appId: ${APP_ID}
 
 - tapOn:
     id: "btn_capture"
+    retryTapIfNoChange: true
+    waitToSettleTimeoutMs: 1000
 
 - tapOn: "Submit"
 
