@@ -203,12 +203,27 @@ jobs:
             echo "WAIT FOR ANDROID BOOT"
             echo "========================================"
 
-            until [ "$(adb shell getprop sys.boot_completed | tr -d '\r')" = "1" ]; do
-              echo "Waiting for Android boot to complete..."
+            BOOT_TIMEOUT=300
+            BOOT_ELAPSED=0
+
+            while [ "$BOOT_ELAPSED" -lt "$BOOT_TIMEOUT" ]; do
+              BOOT_STATUS="$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')"
+
+              if [ "$BOOT_STATUS" = "1" ]; then
+                echo "Android boot completed"
+                break
+              fi
+
+              echo "Waiting for Android boot... ${BOOT_ELAPSED}s"
               sleep 5
+              BOOT_ELAPSED=$((BOOT_ELAPSED + 5))
             done
 
-            echo "Android boot completed"
+            if [ "$BOOT_STATUS" != "1" ]; then
+              echo "ERROR: Android boot timeout after ${BOOT_TIMEOUT}s"
+              adb shell getprop sys.boot_completed || true
+              exit 1
+            fi
 
             # ========================================================
             # ANDROID ENVIRONMENT INFO
@@ -438,3 +453,5 @@ jobs:
           name: maestro-allure-report
           path: Maestro/allure-report/
           if-no-files-found: warn
+
+# implement clean device
