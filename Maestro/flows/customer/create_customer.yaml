@@ -42,6 +42,8 @@ appId: ${APP_ID}
 
 - inputText: ${EMAIL}
 
+- hideKeyboard
+
 - scrollUntilVisible:
     element:
       id: noo_registration_input_contact_person
