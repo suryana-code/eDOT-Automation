@@ -1,5 +1,10 @@
 appId: ${APP_ID}
 ---
+- swipe:
+    start: 50%, 85%
+    end: 50%, 20%
+    duration: 800
+
 # Beri waktu rendering di runner CI
 - extendedWaitUntil:
     visible: "New Customer"

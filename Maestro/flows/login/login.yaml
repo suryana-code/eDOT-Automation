@@ -19,9 +19,9 @@ appId: ${APP_ID}
 
 - extendedWaitUntil:
     visible: "New Customer"
-    timeout: 15000
+    timeout: 20000
 
 - swipe:
     start: 50%, 85%
     end: 50%, 20%
-    duration: 700
+    duration: 800
