@@ -1,4 +1,4 @@
-name: Automation Tests
+name: Playwright Tests
 
 on:
   push:

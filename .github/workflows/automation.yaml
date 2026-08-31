@@ -6,6 +6,16 @@ on:
       - main
 
   workflow_dispatch:
+    inputs:
+      test_suite:
+        description: "Select automation to run"
+        required: true
+        default: "all"
+        type: choice
+        options:
+          - all
+          - playwright
+          - maestro
 
 permissions:
   contents: read
@@ -14,12 +24,17 @@ concurrency:
   group: automation
   cancel-in-progress: true
 
-jobs:
-  # ================================================================
-  # PLAYWRIGHT
-  # ================================================================
+# ================================================================
+# PLAYWRIGHT
+# ================================================================
 
+jobs:
   playwright:
+    if: >
+      github.event_name == 'push' ||
+      inputs.test_suite == 'all' ||
+      inputs.test_suite == 'playwright'
+
     runs-on: ubuntu-latest
 
     env:
@@ -28,10 +43,6 @@ jobs:
       PASSWORD: ${{ secrets.PASSWORD }}
 
     steps:
-      # ============================================================
-      # CHECKOUT
-      # ============================================================
-
       - name: Checkout Repository
         uses: actions/checkout@v4
 
@@ -72,6 +83,8 @@ jobs:
         continue-on-error: true
         working-directory: Playwright
         run: |
+          mkdir -p "$GITHUB_WORKSPACE/.allure/playwright-results"
+
           pytest -v -s \
             --alluredir="$GITHUB_WORKSPACE/.allure/playwright-results"
 
@@ -92,6 +105,11 @@ jobs:
   # ================================================================
 
   maestro:
+    if: >
+      github.event_name == 'push' ||
+      inputs.test_suite == 'all' ||
+      inputs.test_suite == 'maestro'
+
     runs-on: ubuntu-latest
 
     env:
@@ -102,10 +120,6 @@ jobs:
       MAESTRO_APK_SHA256: ${{ secrets.MAESTRO_APK_SHA256 }}
 
     steps:
-      # ============================================================
-      # CHECKOUT
-      # ============================================================
-
       - name: Checkout Repository
         uses: actions/checkout@v4
 
@@ -175,12 +189,7 @@ jobs:
             --output "$APK_ZIP" \
             "https://github.com/suryana-code/eDOT-Automation/releases/download/maestro-ci-v1/edot-maestro-apk.zip"
 
-          echo "Downloaded APK ZIP:"
           ls -lh "$APK_ZIP"
-
-          # ========================================================
-          # VERIFY SHA-256
-          # ========================================================
 
           echo "========================================"
           echo "VERIFY SHA-256"
@@ -199,10 +208,6 @@ jobs:
             | sha256sum --check --status
 
           echo "SHA-256 verification passed"
-
-          # ========================================================
-          # EXTRACT APK
-          # ========================================================
 
           echo "========================================"
           echo "EXTRACT APK"
@@ -244,6 +249,7 @@ jobs:
           target: google_apis
           arch: x86_64
           profile: pixel_5
+
           force-avd-creation: true
           disable-animations: true
           emulator-boot-timeout: 600
@@ -281,6 +287,7 @@ jobs:
             adb shell wm size
             adb shell wm density
 
+
             # ========================================================
             # VERIFY ENVIRONMENT
             # ========================================================
@@ -295,6 +302,7 @@ jobs:
             test -n "$PASSWORD"
 
             echo "Environment variables are configured"
+
 
             # ========================================================
             # VERIFY APK
@@ -312,6 +320,7 @@ jobs:
 
             ls -lh "$APK_DIR"
 
+
             # ========================================================
             # INSTALL APPLICATION
             # ========================================================
@@ -327,6 +336,7 @@ jobs:
 
             echo "Application installed successfully"
 
+
             # ========================================================
             # VERIFY PACKAGE
             # ========================================================
@@ -336,6 +346,7 @@ jobs:
             echo "========================================"
 
             adb shell pm path "$APP_ID"
+
 
             # ========================================================
             # LAUNCH APPLICATION
@@ -354,6 +365,7 @@ jobs:
 
             sleep 8
 
+
             # ========================================================
             # DISABLE AUTOFILL
             # ========================================================
@@ -365,6 +377,7 @@ jobs:
             adb shell settings put secure autofill_service null || true
 
             echo "Autofill disabled"
+
 
             # ========================================================
             # RUN MAESTRO
@@ -381,16 +394,12 @@ jobs:
               --alluredir="$GITHUB_WORKSPACE/.allure/maestro-results"
 
       # ============================================================
-      # SHOW MAESTRO DEBUG
+      # MAESTRO DEBUG
       # ============================================================
 
       - name: Show Maestro debug files
         if: always()
         run: |
-          echo "========================================"
-          echo "MAESTRO DEBUG FILES"
-          echo "========================================"
-
           if [ -d "$HOME/.maestro" ]; then
             find "$HOME/.maestro" \
               -maxdepth 4 \
@@ -413,7 +422,7 @@ jobs:
           if-no-files-found: warn
 
       # ============================================================
-      # UPLOAD MAESTRO EVIDENCE
+      # MAESTRO EVIDENCE
       # ============================================================
 
       - name: Upload Maestro evidence
@@ -427,7 +436,7 @@ jobs:
           if-no-files-found: warn
 
       # ============================================================
-      # UPLOAD MAESTRO DEBUG
+      # MAESTRO DEBUG
       # ============================================================
 
       - name: Upload Maestro debug
@@ -440,7 +449,7 @@ jobs:
           if-no-files-found: warn
 
   # ================================================================
-  # COMBINE + GENERATE ALLURE
+  # COMBINED ALLURE REPORT
   # ================================================================
 
   report:
@@ -459,15 +468,11 @@ jobs:
 
     steps:
       # ============================================================
-      # CHECKOUT
+      # SETUP
       # ============================================================
 
       - name: Checkout Repository
         uses: actions/checkout@v4
-
-      # ============================================================
-      # SETUP JAVA
-      # ============================================================
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -475,17 +480,20 @@ jobs:
           distribution: temurin
           java-version: "21"
 
-      # ============================================================
-      # SETUP NODE
-      # ============================================================
-
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
       # ============================================================
-      # INSTALL ALLURE
+      # GITHUB PAGES
+      # ============================================================
+
+      - name: Setup GitHub Pages
+        uses: actions/configure-pages@v5
+
+      # ============================================================
+      # ALLURE
       # ============================================================
 
       - name: Install Allure CLI
@@ -511,6 +519,7 @@ jobs:
       # ============================================================
 
       - name: Download Playwright results
+        if: always()
         uses: actions/download-artifact@v4
         with:
           name: playwright-allure-results
@@ -522,6 +531,7 @@ jobs:
       # ============================================================
 
       - name: Download Maestro results
+        if: always()
         uses: actions/download-artifact@v4
         with:
           name: maestro-allure-results
@@ -533,24 +543,39 @@ jobs:
       # ============================================================
 
       - name: Merge Allure results
+        if: always()
         run: |
+
           echo "========================================"
           echo "MERGE ALLURE RESULTS"
           echo "========================================"
 
-          cp -R .allure/playwright-results/. .allure/results/ 2>/dev/null || true
-          cp -R .allure/maestro-results/. .allure/results/ 2>/dev/null || true
+          cp -R \
+            .allure/playwright-results/. \
+            .allure/results/ \
+            2>/dev/null || true
+
+          cp -R \
+            .allure/maestro-results/. \
+            .allure/results/ \
+            2>/dev/null || true
 
           echo ""
           echo "Combined result files:"
-          find .allure/results -maxdepth 1 -type f -print || true
+
+          find .allure/results \
+            -maxdepth 1 \
+            -type f \
+            -print || true
 
       # ============================================================
-      # GENERATE REPORT
+      # GENERATE ALLURE
       # ============================================================
 
       - name: Generate combined Allure report
+        if: always()
         run: |
+
           echo "========================================"
           echo "GENERATE ALLURE REPORT"
           echo "========================================"
@@ -565,6 +590,7 @@ jobs:
       # ============================================================
 
       - name: Upload combined Allure results
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: combined-allure-results
@@ -576,6 +602,7 @@ jobs:
       # ============================================================
 
       - name: Upload combined Allure report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: combined-allure-report
@@ -583,10 +610,11 @@ jobs:
           if-no-files-found: warn
 
       # ============================================================
-      # GITHUB PAGES
+      # UPLOAD GITHUB PAGES
       # ============================================================
 
       - name: Upload GitHub Pages artifact
+        if: always()
         uses: actions/upload-pages-artifact@v4
         with:
           path: .allure/report
