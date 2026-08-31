@@ -90,7 +90,9 @@ appId: ${APP_ID}
     timeout: 10000
 
 - swipe:
-    direction: DOWN
+    start: 50%, 85%
+    end: 50%, 20%
+    duration: 800
 
 - tapOn:
     id: noo_registration_input_address_type
