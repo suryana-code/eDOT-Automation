@@ -65,35 +65,24 @@ jobs:
           java-version: "21"
 
       # ============================================================
-      # PLAYWRIGHT DEPENDENCIES
+      # DEPENDENCIES (PLAYWRIGHT & MAESTRO)
       # ============================================================
 
-      - name: Install Playwright Dependencies
-        working-directory: Playwright
+      - name: Install Playwright & Maestro Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          playwright install --with-deps
+          if [ -f Playwright/requirements.txt ]; then pip install -r Playwright/requirements.txt; fi
+          if [ -f Maestro/requirements.txt ]; then pip install -r Maestro/requirements.txt; fi
+          cd Playwright && playwright install --with-deps
 
       # ============================================================
-      # MAESTRO PYTHON DEPENDENCIES & CLI
+      # MAESTRO CLI & ALLURE CLI
       # ============================================================
 
-      - name: Install Maestro Dependencies & CLI
+      - name: Install Maestro CLI & Allure CLI
         run: |
-          python -m pip install --upgrade pip
-          if [ -f Maestro/requirements.txt ]; then
-            pip install -r Maestro/requirements.txt
-          fi
           curl -Ls https://get.maestro.mobile.dev | bash
           echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
-
-      # ============================================================
-      # ALLURE CLI
-      # ============================================================
-
-      - name: Install Allure CLI
-        run: |
           sudo npm install -g allure-commandline
           allure --version
 
@@ -115,8 +104,8 @@ jobs:
 
       - name: Run Playwright Automation
         id: playwright
-        working-directory: Playwright
         continue-on-error: true
+        working-directory: Playwright
         run: |
           pytest -v -s --alluredir=../.allure/playwright-results
 
@@ -166,12 +155,10 @@ jobs:
           sudo udevadm trigger --name-match=kvm
 
       # ============================================================
-      # 2. RUN MAESTRO AUTOMATION
+      # 2. RUN MAESTRO AUTOMATION (SEPARATED STEP)
       # ============================================================
 
-      - name: Start emulator and run Maestro
-        id: maestro
-        continue-on-error: true
+      - name: Start emulator and launch App
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 30
@@ -198,20 +185,18 @@ jobs:
             adb shell pm clear "$APP_ID" || true
 
             APK_DIR="$GITHUB_WORKSPACE/.ci/edot-apk"
-
             adb install-multiple -r "$APK_DIR/base.apk" "$APK_DIR/split_config.arm64_v8a.apk" "$APK_DIR/split_config.xxhdpi.apk" || adb install-multiple -r "$APK_DIR/base.apk" "$APK_DIR/split_config.xxhdpi.apk" || adb install -r "$APK_DIR/base.apk"
 
             adb shell monkey -p "$APP_ID" -c android.intent.category.LAUNCHER 1
             sleep 15
             adb shell settings put secure autofill_service null || true
 
-            # Eksekusi Maestro tanpa menghentikan script jika ada kegagalan test
+            # Jalankan test Maestro & pastikan selalu return 0 agar Allure tetap digenerate
             cd "$GITHUB_WORKSPACE/Maestro"
-            pytest -v -s pytest/test_mobile.py --alluredir=../.allure/maestro-results || true
-            make test || true
+            make test || pytest -v -s pytest/test_mobile.py --alluredir=../.allure/maestro-results || echo "Maestro finished with errors"
 
       # ============================================================
-      # MERGE ALLURE RESULTS
+      # MERGE ALLURE RESULTS (PLAYWRIGHT + MAESTRO)
       # ============================================================
 
       - name: Merge Allure results
@@ -230,18 +215,18 @@ jobs:
             cp -R .allure/playwright-results/. .allure/results/ || true
           fi
 
-          # Copy Maestro Results (Mengecek di seluruh kemungkinan folder)
-          if [ -d ".allure/maestro-results" ]; then
-            echo "Copying Maestro results from .allure/maestro-results..."
-            cp -R .allure/maestro-results/. .allure/results/ || true
-          fi
+          # Copy Maestro Results dari subfolder Maestro maupun .allure
           if [ -d "Maestro/allure-results" ]; then
             echo "Copying Maestro results from Maestro/allure-results..."
             cp -R Maestro/allure-results/. .allure/results/ || true
           fi
+          if [ -d ".allure/maestro-results" ]; then
+            echo "Copying Maestro results from .allure/maestro-results..."
+            cp -R .allure/maestro-results/. .allure/results/ || true
+          fi
 
-          echo "File JSON hasil gabungan:"
-          find .allure/results -name '*-result.json' -print
+          echo "Merged JSON Result Files Count:"
+          find .allure/results -name '*-result.json' | wc -l
 
       # ============================================================
       # GENERATE COMBINED ALLURE REPORT
