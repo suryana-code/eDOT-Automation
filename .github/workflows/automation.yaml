@@ -1,4 +1,4 @@
-name: Automation Test
+name: Automation Workflow
 
 on:
   push:
@@ -16,11 +16,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # ============================================================
-  # JOB 1: PLAYWRIGHT (WEB AUTOMATION) - RUN PARALLEL
-  # ============================================================
-  playwright:
-    name: Run Playwright Tests
+  automation:
     runs-on: ubuntu-latest
 
     env:
@@ -28,14 +24,49 @@ jobs:
       EMAIL: ${{ secrets.EMAIL }}
       PASSWORD: ${{ secrets.PASSWORD }}
 
+      APP_ID: ${{ secrets.MAESTRO_APP_ID }}
+      COMPANY_ID: ${{ secrets.MAESTRO_COMPANY_ID }}
+      USER_NAME: ${{ secrets.MAESTRO_USER_NAME }}
+      MAESTRO_PASSWORD: ${{ secrets.MAESTRO_PASSWORD }}
+      MAESTRO_APK_SHA256: ${{ secrets.MAESTRO_APK_SHA256 }}
+
     steps:
+      # ============================================================
+      # CHECKOUT
+      # ============================================================
+
       - name: Checkout Repository
         uses: actions/checkout@v4
+
+      # ============================================================
+      # GITHUB PAGES SETUP
+      # ============================================================
+
+      - name: Setup GitHub Pages
+        uses: actions/configure-pages@v5
+
+      # ============================================================
+      # PYTHON
+      # ============================================================
 
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.9"
+
+      # ============================================================
+      # JAVA
+      # ============================================================
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      # ============================================================
+      # PLAYWRIGHT DEPENDENCIES
+      # ============================================================
 
       - name: Install Playwright Dependencies
         working-directory: Playwright
@@ -44,6 +75,44 @@ jobs:
           pip install -r requirements.txt
           playwright install --with-deps
 
+      # ============================================================
+      # MAESTRO PYTHON DEPENDENCIES & CLI
+      # ============================================================
+
+      - name: Install Maestro Dependencies & CLI
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f Maestro/requirements.txt ]; then
+            pip install -r Maestro/requirements.txt
+          fi
+          curl -Ls https://get.maestro.mobile.dev | bash
+          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+
+      # ============================================================
+      # ALLURE CLI
+      # ============================================================
+
+      - name: Install Allure CLI
+        run: |
+          sudo npm install -g allure-commandline
+          allure --version
+
+      # ============================================================
+      # PREPARE ALLURE DIRECTORIES
+      # ============================================================
+
+      - name: Prepare Allure directories
+        run: |
+          rm -rf .allure
+          mkdir -p .allure/playwright-results
+          mkdir -p .allure/maestro-results
+          mkdir -p .allure/results
+          mkdir -p .allure/report
+
+      # ============================================================
+      # 1. RUN PLAYWRIGHT AUTOMATION
+      # ============================================================
+
       - name: Run Playwright Automation
         id: playwright
         working-directory: Playwright
@@ -51,74 +120,43 @@ jobs:
         run: |
           pytest -v -s --alluredir=../.allure/playwright-results
 
-      - name: Upload Playwright Allure Results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-allure-results
-          path: .allure/playwright-results/
-          if-no-files-found: warn
+      # ============================================================
+      # DOWNLOAD MAESTRO APK
+      # ============================================================
 
-  # ============================================================
-  # JOB 2: MAESTRO (MOBILE AUTOMATION) - RUN PARALLEL
-  # ============================================================
-  maestro:
-    name: Run Maestro Tests
-    runs-on: ubuntu-latest
-
-    env:
-      APP_ID: ${{ secrets.MAESTRO_APP_ID }}
-      COMPANY_ID: ${{ secrets.MAESTRO_COMPANY_ID }}
-      USER_NAME: ${{ secrets.MAESTRO_USER_NAME }}
-      PASSWORD: ${{ secrets.MAESTRO_PASSWORD }}
-      MAESTRO_APK_SHA256: ${{ secrets.MAESTRO_APK_SHA256 }}
-
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.9"
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "21"
-
-      - name: Install Python Dependencies
-        working-directory: Maestro
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: Install Maestro CLI
-        run: |
-          curl -Ls https://get.maestro.mobile.dev | bash
-          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
-          "$HOME/.maestro/bin/maestro" --version
-
-      - name: Download and Verify APK
+      - name: Download and verify Maestro APK
         shell: bash
         run: |
           set -euo pipefail
+
           APK_ZIP="$GITHUB_WORKSPACE/edot-maestro-apk.zip"
           APK_DIR="$GITHUB_WORKSPACE/.ci/edot-apk"
+
           rm -rf "$APK_DIR"
           mkdir -p "$APK_DIR"
 
-          curl --fail --location --retry 3 --retry-all-errors --output "$APK_ZIP" \
+          curl \
+            --fail \
+            --location \
+            --retry 3 \
+            --retry-all-errors \
+            --output "$APK_ZIP" \
             "https://github.com/suryana-code/eDOT-Automation/releases/download/maestro-ci-v1/edot-maestro-apk.zip"
 
           APK_SHA256="$(printf '%s' "$MAESTRO_APK_SHA256" | tr -d '[:space:]')"
+
           if [ -z "$APK_SHA256" ]; then
             echo "ERROR: MAESTRO_APK_SHA256 is empty"
             exit 1
           fi
+
           printf '%s  %s\n' "$APK_SHA256" "$APK_ZIP" | sha256sum --check --status
           unzip -q "$APK_ZIP" -d "$APK_DIR"
+          echo "APK verification passed"
+
+      # ============================================================
+      # ENABLE KVM FOR EMULATOR
+      # ============================================================
 
       - name: Enable KVM
         run: |
@@ -127,7 +165,11 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      - name: Start Emulator and Run Maestro
+      # ============================================================
+      # 2. RUN MAESTRO AUTOMATION
+      # ============================================================
+
+      - name: Start emulator and run Maestro
         id: maestro
         continue-on-error: true
         uses: reactivecircus/android-emulator-runner@v2
@@ -147,112 +189,98 @@ jobs:
             -camera-back emulated
             -camera-front emulated
             -no-snapshot-save
+
           script: |
+            set -e
+
             adb devices
             adb wait-for-device
+
             adb shell am force-stop "$APP_ID" || true
             adb shell pm clear "$APP_ID" || true
 
-            adb install-multiple -r "$GITHUB_WORKSPACE/.ci/edot-apk/base.apk" "$GITHUB_WORKSPACE/.ci/edot-apk/split_config.arm64_v8a.apk" "$GITHUB_WORKSPACE/.ci/edot-apk/split_config.xxhdpi.apk" || adb install-multiple -r "$GITHUB_WORKSPACE/.ci/edot-apk/base.apk" "$GITHUB_WORKSPACE/.ci/edot-apk/split_config.xxhdpi.apk" || adb install -r "$GITHUB_WORKSPACE/.ci/edot-apk/base.apk"
+            APK_DIR="$GITHUB_WORKSPACE/.ci/edot-apk"
+
+            adb install-multiple -r "$APK_DIR/base.apk" "$APK_DIR/split_config.arm64_v8a.apk" "$APK_DIR/split_config.xxhdpi.apk" || adb install-multiple -r "$APK_DIR/base.apk" "$APK_DIR/split_config.xxhdpi.apk" || adb install -r "$APK_DIR/base.apk"
 
             adb shell monkey -p "$APP_ID" -c android.intent.category.LAUNCHER 1
             sleep 15
             adb shell settings put secure autofill_service null || true
 
-            # Menjalankan Pytest Maestro dengan output alluredir
             cd "$GITHUB_WORKSPACE/Maestro"
-            pytest -v -s pytest/test_mobile.py --alluredir="$GITHUB_WORKSPACE/.allure/maestro-results"
+            if [ -f "Makefile" ]; then
+              make test || pytest -v -s pytest/test_mobile.py --alluredir=../.allure/maestro-results
+            else
+              pytest -v -s pytest/test_mobile.py --alluredir=../.allure/maestro-results
+            fi
 
-      - name: Upload Maestro Allure Results
+      # ============================================================
+      # MERGE ALLURE RESULTS
+      # ============================================================
+
+      - name: Merge Allure results
         if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: maestro-allure-results
-          path: .allure/maestro-results/
-          if-no-files-found: warn
-
-      - name: Upload Maestro Evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: maestro-evidence
-          path: |
-            Maestro/recordings/
-            Maestro/*.log
-          if-no-files-found: warn
-
-  # ============================================================
-  # JOB 3: MERGE ALLURE REPORTS & DEPLOY TO GITHUB PAGES
-  # ============================================================
-  publish-report:
-    name: Merge Allure Reports & Deploy Pages
-    needs: [playwright, maestro]
-    if: always()
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "21"
-
-      - name: Install Allure CLI
         run: |
-          sudo npm install -g allure-commandline
-          allure --version
+          echo "========================================"
+          echo "MERGING ALLURE RESULTS"
+          echo "========================================"
 
-      - name: Prepare Combined Allure Directory
-        run: |
-          rm -rf .allure
+          rm -rf .allure/results
           mkdir -p .allure/results
 
-      - name: Download Playwright Results
-        uses: actions/download-artifact@v4
-        continue-on-error: true
-        with:
-          name: playwright-allure-results
-          path: .allure/playwright-results
-
-      - name: Download Maestro Results
-        uses: actions/download-artifact@v4
-        continue-on-error: true
-        with:
-          name: maestro-allure-results
-          path: .allure/maestro-results
-
-      - name: Combine Allure Results
-        run: |
+          # Copy Playwright Results
           if [ -d ".allure/playwright-results" ]; then
+            echo "Copying Playwright results..."
             cp -R .allure/playwright-results/. .allure/results/ || true
           fi
+
+          # Copy Maestro Results (Pengecekan di 2 lokasi path)
           if [ -d ".allure/maestro-results" ]; then
+            echo "Copying Maestro results from .allure/maestro-results..."
             cp -R .allure/maestro-results/. .allure/results/ || true
           fi
-          echo "Combined Allure JSON files:"
-          ls -la .allure/results/
+          if [ -d "Maestro/allure-results" ]; then
+            echo "Copying Maestro results from Maestro/allure-results..."
+            cp -R Maestro/allure-results/. .allure/results/ || true
+          fi
 
-      - name: Generate Combined Allure Report
+          echo "Total JSON results merged:"
+          find .allure/results -name '*-result.json' | wc -l
+
+      # ============================================================
+      # GENERATE COMBINED ALLURE REPORT
+      # ============================================================
+
+      - name: Generate combined Allure report
+        if: always()
         run: |
-          allure generate .allure/results --clean -o .allure/report
+          echo "========================================"
+          echo "GENERATE COMBINED ALLURE REPORT"
+          echo "========================================"
 
-      - name: Setup GitHub Pages
-        uses: actions/configure-pages@v5
+          rm -rf .allure/report
 
-      - name: Upload Pages Artifact
+          allure generate \
+            .allure/results \
+            --clean \
+            -o .allure/report
+
+      # ============================================================
+      # UPLOAD GITHUB PAGES ARTIFACT
+      # ============================================================
+
+      - name: Upload GitHub Pages Artifact
+        if: always()
         uses: actions/upload-pages-artifact@v4
         with:
           path: .allure/report
 
-  # ============================================================
-  # JOB 4: DEPLOYMENT TO GITHUB PAGES
-  # ============================================================
-  deploy-pages:
-    name: Deploy Allure Report to GitHub Pages
-    needs: publish-report
+  # ================================================================
+  # DEPLOY TO GITHUB PAGES JOB
+  # ================================================================
+
+  deploy:
+    needs: automation
     if: always()
     runs-on: ubuntu-latest
 
