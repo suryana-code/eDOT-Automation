@@ -17,6 +17,10 @@ appId: ${APP_ID}
 
 - tapOn: "Sign In"
 
+- assertNotVisible:
+    text: "Downloading Master Data"
+    timeout: 120000
+
 - extendedWaitUntil:
     visible: "New Customer"
     timeout: 20000
