@@ -25,4 +25,4 @@ appId: ${APP_ID}
 - swipe:
     start: 50%, 85%
     end: 50%, 20%
-    duration: 800
+    duration: 700
