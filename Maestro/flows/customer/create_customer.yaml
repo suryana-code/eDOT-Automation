@@ -139,8 +139,9 @@ appId: ${APP_ID}
     timeout: 30000
 
 - tapOn:
-    point: "50%, 91%"
+    id: "btn_capture"
     retryTapIfNoChange: true
+    waitToSettleTimeoutMs: 0
 
 - tapOn: "Submit"
 
