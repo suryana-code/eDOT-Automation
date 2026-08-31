@@ -89,6 +89,9 @@ appId: ${APP_ID}
     visible: "Store Information"
     timeout: 10000
 
+- swipe:
+    direction: DOWN
+
 - tapOn:
     id: noo_registration_input_address_type
 
