@@ -109,6 +109,8 @@ appId: ${APP_ID}
 - swipe:
     direction: UP
 
+- hideKeyboard
+
 # Cascade lokasi customer
 - tapOn: "Choose Province"
 - tapOn: ${PROVINCE}
