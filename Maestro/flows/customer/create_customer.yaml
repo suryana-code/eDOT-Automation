@@ -106,9 +106,6 @@ appId: ${APP_ID}
 
 - inputText: ${ADDRESS}
 
-- swipe:
-    direction: UP
-
 - hideKeyboard
 
 # Cascade lokasi customer
