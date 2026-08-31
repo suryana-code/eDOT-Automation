@@ -182,7 +182,7 @@ jobs:
             -gpu swiftshader_indirect
             -noaudio
             -no-boot-anim
-            -camera-back virtualscene
+            -camera-back emulated
             -camera-front emulated
             -no-snapshot-save
 
