@@ -133,6 +133,11 @@ appId: ${APP_ID}
 
 - tapOn: "Upload File"
 
+- extendedWaitUntil:
+    visible:
+      id: "btn_capture"
+    timeout: 30000
+
 - tapOn:
     id: "btn_capture"
 
