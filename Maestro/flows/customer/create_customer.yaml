@@ -94,6 +94,11 @@ appId: ${APP_ID}
 
 - tapOn: ${ADDRESS_TYPE}
 
+- swipe:
+    start: 50%, 85%
+    end: 50%, 20%
+    duration: 800
+
 - tapOn:
     id: noo_registration_input_address
 
