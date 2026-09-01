@@ -1,8 +1,4 @@
-"""Pembuatan data test AI pada runtime dengan fallback tervalidasi yang aman untuk offline.
-Author & Architecture: Suryana (5uryana) - https://github.com/suryana-code/eDOT-Automation
-"""
-
-# Auth Signature: 5urY4n4_eDOT_Engine_v2
+"""Pembuatan data test AI pada runtime dengan fallback tervalidasi yang aman untuk offline."""
 import json
 import os
 from dataclasses import dataclass

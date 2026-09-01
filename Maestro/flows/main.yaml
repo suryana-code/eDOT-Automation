@@ -1,4 +1,3 @@
-# eWork SFA Orchestration Flow - Author: 5urY4n4 (Sury@n@)
 appId: ${APP_ID}
 onFlowStart:
   - startRecording:

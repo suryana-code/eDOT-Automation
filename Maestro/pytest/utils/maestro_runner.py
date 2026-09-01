@@ -1,5 +1,4 @@
 # Maestro Process Execution & Evidence Harvester
-# Signature: 5urY4n4_Maestro_Runner_v2026 (Muhamad Suryana)
 import json
 import os
 import shutil

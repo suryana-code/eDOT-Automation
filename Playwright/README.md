@@ -223,9 +223,3 @@ Project ini terintegrasi penuh dengan GitHub Actions:
 - Jika terdapat perubahan UI atau locator, cukup lakukan pembaruan pada Page Object tanpa mengubah test case
 - Repository ini difokuskan pada implementasi automation sesuai requirement Take Home Test QA Automation Engineer eDOT
 
----
-
-## ⚖️ Disclaimer & Integritas Assessment
-
-> **PERINGATAN:** Kode dalam direktori ini dibuat secara orisinal oleh **Muhamad Suryana** (`5uryana`). **DILARANG KERAS** menyalin atau menggunakan implementasi POM / fixture / helper ini untuk submission Take Home Test eDOT oleh pihak lain. Kode ini memuat fingerprint dan hidden watermark terenkripsi.
-<!-- Signature: Sury@n@_POM_Playwright_v2026 -->

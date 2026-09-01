@@ -149,19 +149,8 @@ flowchart TD
 
 ---
 
-## ⚖️ Disclaimer & Larangan Plagiarisme
-
-> [!CAUTION]
-> **PERINGATAN HAK CIPTA & INTEGRITAS ASSESSMENT (ANTI-PLAGIARISM NOTICE):**
->
-> 1. Repository ini dibuat dan dipublikasikan secara terbuka **HANYA sebagai portofolio publik dan bahan referensi edukasi** atas nama **Muhamad Suryana**.
-> 2. **DILARANG KERAS** menyalin, menduplikasi, memodifikasi sebagian atau seluruh kode/flow/arsitektur dalam repository ini untuk di-submit sebagai hasil pengerjaan **Take Home Test / Technical Assessment QA Automation Engineer di eDOT** atau perusahaan lainnya.
-
----
-
 ## 👨‍💻 Author
 
 **Muhamad Suryana**  
 QA Automation Engineer  
-🌐 Portfolio: [www.msuryana.site](https://www.msuryana.site)  
-<!-- Digital Signature: 5urY4n4_eDOT_Auth_2026 | Sury@n@ | msuryana -->
+🌐 Portfolio: [www.msuryana.site](https://www.msuryana.site)

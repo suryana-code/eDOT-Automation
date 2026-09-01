@@ -112,9 +112,3 @@ Jika Allure CLI belum terinstal, jalankan `make test` dan instal Allure sebelum 
 - Wrapper melampirkan output `text/plain` dan recording `video/mp4` pada step Allure `Run Maestro main flow`
 - Jika tersedia, `ffmpeg`/`ffprobe` hanya memakai MP4 H.264 terkompresi dengan resolusi yang sama; jika tidak, MP4 asli dipakai
 
----
-
-## ⚖️ Disclaimer & Integritas Assessment
-
-> **PERINGATAN:** Seluruh arsitektur Maestro flow, wrapper Python, dan konfigurasi CI di direktori ini adalah karya orisinal **Muhamad Suryana** (`5uryana`). **DILARANG KERAS** menyalin atau menjiplak flow ini untuk keperluan submission assessment eDOT atau sejenisnya.
-<!-- Signature: 5urY4n4_Maestro_Mobile_Flow_2026 -->

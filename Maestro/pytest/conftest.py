@@ -1,5 +1,4 @@
 
-# Maestro Fixture & Dynamic Data Engine - Author: Sury@n@ (5uryana)
 from pathlib import Path
 
 import allure

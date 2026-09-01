@@ -1,8 +1,6 @@
 from pages.base_page import BasePage
 from playwright.sync_api import TimeoutError, expect
 
-# eSuite POM Architecture - Author: 5urY4n4 (Muhamad Suryana)
-
 
 class CompanyPage(BasePage):
 
