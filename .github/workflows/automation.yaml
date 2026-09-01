@@ -418,9 +418,7 @@ jobs:
 
             mkdir -p "$GITHUB_WORKSPACE/.allure/maestro-results"
 
-            cd "$GITHUB_WORKSPACE/Maestro"
-            pytest -v -s pytest/test_mobile.py \
-              --alluredir="$GITHUB_WORKSPACE/.allure/maestro-results"
+            cd "$GITHUB_WORKSPACE/Maestro" && pytest -v -s pytest/test_mobile.py --alluredir="$GITHUB_WORKSPACE/.allure/maestro-results"
 
       # ============================================================
       # FALLBACK ALLURE RESULT
