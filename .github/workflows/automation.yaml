@@ -109,8 +109,9 @@ jobs:
 
   maestro:
     if: >
-      github.event_name == 'workflow_dispatch' &&
-      (inputs.test_suite == 'all' || inputs.test_suite == 'maestro')
+      github.event_name == 'push' ||
+      inputs.test_suite == 'all' ||
+      inputs.test_suite == 'maestro'
 
     runs-on: ubuntu-latest
 
@@ -163,7 +164,6 @@ jobs:
 
       - name: Install Maestro
         run: |
-          export MAESTRO_VERSION=2.6.1
           curl -Ls https://get.maestro.mobile.dev | bash
           echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
           "$HOME/.maestro/bin/maestro" --version
@@ -184,7 +184,7 @@ jobs:
           mkdir -p "$APK_DIR"
 
           echo "========================================"
-          echo "DOWNLOAD MAESTRO APK"
+          echo "DOWNLOAD APK"
           echo "========================================"
 
           curl \
@@ -195,6 +195,7 @@ jobs:
             --output "$APK_ZIP" \
             "https://github.com/suryana-code/eDOT-Automation/releases/download/maestro-ci-v1/edot-maestro-apk.zip"
 
+          echo "Downloaded ZIP:"
           ls -lh "$APK_ZIP"
 
           echo "========================================"
@@ -221,11 +222,23 @@ jobs:
 
           unzip -q "$APK_ZIP" -d "$APK_DIR"
 
+          echo "Extracted files:"
+          find "$APK_DIR" -maxdepth 1 -type f -print
+
+          echo "========================================"
+          echo "VERIFY APK FILES"
+          echo "========================================"
+
           test -f "$APK_DIR/base.apk"
           test -f "$APK_DIR/split_config.arm64_v8a.apk"
           test -f "$APK_DIR/split_config.xxhdpi.apk"
 
-          echo "APK verification passed"
+          echo "All APK files verified."
+
+          ls -lh \
+            "$APK_DIR/base.apk" \
+            "$APK_DIR/split_config.arm64_v8a.apk" \
+            "$APK_DIR/split_config.xxhdpi.apk"
 
       # ============================================================
       # ENABLE KVM
@@ -270,7 +283,6 @@ jobs:
             -no-snapshot-save
 
           script: |
-
             set -e
 
             echo "========================================"
@@ -279,6 +291,18 @@ jobs:
 
             adb devices
             adb wait-for-device
+
+            echo "========================================"
+            echo "RESET EMULATOR STATE"
+            echo "========================================"
+
+            # Stop application if it is running
+            adb shell am force-stop "$APP_ID" || true
+
+            # Clear application data
+            adb shell pm clear "$APP_ID" || true
+
+            echo "Application state cleared"
 
             echo "SDK:"
             adb shell getprop ro.build.version.sdk
@@ -299,7 +323,7 @@ jobs:
             # ========================================================
 
             echo "========================================"
-            echo "VERIFY MAESTRO ENVIRONMENT"
+            echo "VERIFY ENVIRONMENT"
             echo "========================================"
 
             test -n "$APP_ID"
@@ -311,23 +335,6 @@ jobs:
 
 
             # ========================================================
-            # VERIFY APK
-            # ========================================================
-
-            echo "========================================"
-            echo "VERIFY APK"
-            echo "========================================"
-
-            APK_DIR="$GITHUB_WORKSPACE/.ci/edot-apk"
-
-            test -f "$APK_DIR/base.apk"
-            test -f "$APK_DIR/split_config.arm64_v8a.apk"
-            test -f "$APK_DIR/split_config.xxhdpi.apk"
-
-            ls -lh "$APK_DIR"
-
-
-            # ========================================================
             # INSTALL APPLICATION
             # ========================================================
 
@@ -335,7 +342,15 @@ jobs:
             echo "INSTALL APPLICATION"
             echo "========================================"
 
-            adb install-multiple -r "$APK_DIR/base.apk" "$APK_DIR/split_config.arm64_v8a.apk" "$APK_DIR/split_config.xxhdpi.apk"
+            adb install-multiple -r \
+              "$GITHUB_WORKSPACE/.ci/edot-apk/base.apk" \
+              "$GITHUB_WORKSPACE/.ci/edot-apk/split_config.arm64_v8a.apk" \
+              "$GITHUB_WORKSPACE/.ci/edot-apk/split_config.xxhdpi.apk" \
+              || adb install-multiple -r \
+                   "$GITHUB_WORKSPACE/.ci/edot-apk/base.apk" \
+                   "$GITHUB_WORKSPACE/.ci/edot-apk/split_config.xxhdpi.apk" \
+              || adb install -r \
+                   "$GITHUB_WORKSPACE/.ci/edot-apk/base.apk"
 
             echo "Application installed successfully"
 
@@ -361,9 +376,8 @@ jobs:
 
             adb shell monkey -p "$APP_ID" -c android.intent.category.LAUNCHER 1
 
-            echo "Application launched"
-
-            sleep 8
+            echo "Application launched, waiting for UI initialization..."
+            sleep 15
 
 
             # ========================================================
@@ -375,28 +389,49 @@ jobs:
             echo "========================================"
 
             adb shell settings put secure autofill_service null || true
-
             echo "Autofill disabled"
 
 
             # ========================================================
-            # RUN MAESTRO
+            # VERIFY MAESTRO PROJECT
+            # ========================================================
+
+            echo "========================================"
+            echo "VERIFY MAESTRO PROJECT"
+            echo "========================================"
+
+            test -d "$GITHUB_WORKSPACE/Maestro"
+            test -f "$GITHUB_WORKSPACE/Maestro/Makefile"
+            test -f "$GITHUB_WORKSPACE/Maestro/pytest/test_mobile.py"
+
+            echo "Maestro project verified"
+
+
+            # ========================================================
+            # RUN MAESTRO TEST
             # ========================================================
 
             echo "========================================"
             echo "RUN MAESTRO TEST"
             echo "========================================"
 
+            mkdir -p "$GITHUB_WORKSPACE/.allure/maestro-results"
+
             cd "$GITHUB_WORKSPACE/Maestro"
-            pytest -v -s pytest/test_mobile.py --alluredir="$GITHUB_WORKSPACE/.allure/maestro-results"
+            pytest -v -s pytest/test_mobile.py \
+              --alluredir="$GITHUB_WORKSPACE/.allure/maestro-results"
 
       # ============================================================
-      # MAESTRO DEBUG
+      # MAESTRO DEBUG FILES
       # ============================================================
 
       - name: Show Maestro debug files
         if: always()
         run: |
+          echo "========================================"
+          echo "MAESTRO DEBUG FILES"
+          echo "========================================"
+
           if [ -d "$HOME/.maestro" ]; then
             find "$HOME/.maestro" \
               -maxdepth 4 \
@@ -433,7 +468,7 @@ jobs:
           if-no-files-found: warn
 
       # ============================================================
-      # MAESTRO DEBUG
+      # MAESTRO DEBUG ARTIFACTS
       # ============================================================
 
       - name: Upload Maestro debug
@@ -544,7 +579,6 @@ jobs:
       - name: Merge Allure results
         if: always()
         run: |
-
           echo "========================================"
           echo "MERGE ALLURE RESULTS"
           echo "========================================"
@@ -574,7 +608,6 @@ jobs:
       - name: Generate combined Allure report
         if: always()
         run: |
-
           echo "========================================"
           echo "GENERATE ALLURE REPORT"
           echo "========================================"
@@ -625,10 +658,7 @@ jobs:
   deploy:
     needs: report
 
-    if: >
-      github.event_name == 'workflow_dispatch' &&
-      inputs.test_suite == 'all' &&
-      needs.report.result == 'success'
+    if: always() && needs.report.result == 'success'
 
     runs-on: ubuntu-latest
 
@@ -644,6 +674,10 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+  # ================================================================
+  # QUALITY GATE
+  # ================================================================
 
   quality-gate:
     needs:
@@ -665,17 +699,29 @@ jobs:
           MAESTRO_RESULT: ${{ needs.maestro.outputs.test_result }}
           REPORT_RESULT: ${{ needs.report.result }}
           DEPLOY_RESULT: ${{ needs.deploy.result }}
-          PUBLISH_COMBINED_REPORT: ${{ github.event_name == 'workflow_dispatch' && inputs.test_suite == 'all' }}
         run: |
+          echo "========================================"
+          echo "AUTOMATION SUMMARY"
+          echo "========================================"
           echo "Playwright: ${PLAYWRIGHT_RESULT:-skipped}"
           echo "Maestro:    ${MAESTRO_RESULT:-skipped}"
           echo "Report:     $REPORT_RESULT"
-          echo "Deploy:     $DEPLOY_RESULT"
+          echo "Deploy:     ${DEPLOY_RESULT:-skipped}"
+          echo "========================================"
 
-          if [ "$PLAYWRIGHT_RESULT" = "failure" ] || [ "$MAESTRO_RESULT" = "failure" ] || [ "$REPORT_RESULT" != "success" ]; then
+          if [ "$PLAYWRIGHT_RESULT" = "failure" ] || [ "$MAESTRO_RESULT" = "failure" ]; then
+            echo "One or more test suites failed."
             exit 1
           fi
 
-          if [ "$PUBLISH_COMBINED_REPORT" = "true" ] && [ "$DEPLOY_RESULT" != "success" ]; then
+          if [ "$REPORT_RESULT" != "success" ]; then
+            echo "Report generation failed."
             exit 1
           fi
+
+          if [ "$DEPLOY_RESULT" = "failure" ]; then
+            echo "GitHub Pages deployment failed."
+            exit 1
+          fi
+
+          echo "All checks passed."
