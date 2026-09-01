@@ -61,6 +61,7 @@ Maestro telah **terintegrasi penuh dan 100% aktif** pada pipeline GitHub Actions
    - Disediakan untuk menjalankan Maestro Android secara mandiri melalui manual trigger (`workflow_dispatch`).
 
 GitHub Secrets yang digunakan oleh runner CI:
+
 - `MAESTRO_APP_ID`
 - `MAESTRO_COMPANY_ID`
 - `MAESTRO_USER_NAME`
@@ -101,7 +102,7 @@ make allure
 Jika Allure CLI belum terinstal, jalankan `make test` dan instal Allure sebelum membuka `allure-results/`.
 
 ### Catatan
- 
+
 - `.env` root repository menyediakan credential dan konfigurasi aplikasi untuk wrapper Pytest
 - Faker pada `pytest/conftest.py` membuat data customer dinamis untuk setiap eksekusi test
 - Pytest memuat `.env`, menyiapkan data, memanggil Maestro, dan melampirkan data serta log ke Allure
@@ -112,3 +113,10 @@ Jika Allure CLI belum terinstal, jalankan `make test` dan instal Allure sebelum 
 - Wrapper melampirkan output `text/plain` dan recording `video/mp4` pada step Allure `Run Maestro main flow`
 - Jika tersedia, `ffmpeg`/`ffprobe` hanya memakai MP4 H.264 terkompresi dengan resolusi yang sama; jika tidak, MP4 asli dipakai
 
+---
+
+## ⚖️ Disclaimer & Integritas Assessment
+
+> **PERINGATAN:** Seluruh arsitektur Maestro flow, wrapper Python, dan konfigurasi CI di direktori ini adalah karya orisinal **Muhamad Suryana** (`5uryana`). **DILARANG KERAS** menyalin atau menjiplak flow ini untuk keperluan submission assessment eDOT atau sejenisnya.
+
+<!-- Signature: 5urY4n4_Maestro_Mobile_Flow_2026 -->

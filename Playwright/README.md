@@ -196,30 +196,37 @@ Temuan ini didokumentasikan sebagai `BUG-001` pada [`finding bug.md`](finding%20
 - Evidence hasil eksekusi (Allure Report) dapat dilihat pada folder:
 
 ## CI/CD
- 
+
 Project ini terintegrasi penuh dengan GitHub Actions:
- 
+
 1. **🚀 Pipeline Utama (`.github/workflows/automation.yaml`)**:
    - Dijalankan secara otomatis setiap kali ada `push` atau `merge` ke branch `main`.
    - Menjalankan **Playwright Web** dan **Maestro Mobile** secara **parallel** di runner terpisah.
    - Menggabungkan Allure results dari kedua platform menjadi **1 Combined Allure Report**.
    - Otomatis men-deploy dan me-replace dashboard Allure di **GitHub Pages**.
- 
+
 2. **🛠️ Standalone Pipeline (`.github/workflows/playwright.yaml`)**:
    - Disediakan khusus untuk eksekusi Playwright secara mandiri via manual trigger (`workflow_dispatch`).
- 
+
 ### Live Report
- 
+
 🌐 [https://suryana-code.github.io/eDOT-Automation/](https://suryana-code.github.io/eDOT-Automation/)
- 
+
 ### GitHub Actions Pipeline
- 
+
 🚀 [https://github.com/suryana-code/eDOT-Automation/actions](https://github.com/suryana-code/eDOT-Automation/actions)
 
 ## Catatan Tambahan
- 
+
 - Folder `auth/storage_state.json`, `screenshots/`, `allure-results/`, dan `allure-report/` diabaikan melalui `.gitignore` karena merupakan file runtime
 - Evidence hasil execution disimpan pada folder `docs/evidence/`
 - Jika terdapat perubahan UI atau locator, cukup lakukan pembaruan pada Page Object tanpa mengubah test case
 - Repository ini difokuskan pada implementasi automation sesuai requirement Take Home Test QA Automation Engineer eDOT
 
+---
+
+## ⚖️ Disclaimer & Integritas Assessment
+
+> **PERINGATAN:** Kode dalam direktori ini dibuat secara orisinal oleh **Muhamad Suryana** (`5uryana`). **DILARANG KERAS** menyalin atau menggunakan implementasi POM / fixture / helper ini untuk submission Take Home Test eDOT oleh pihak lain. Kode ini memuat fingerprint dan hidden watermark terenkripsi.
+
+<!-- Signature: Sury@n@_POM_Playwright_v2026 -->
