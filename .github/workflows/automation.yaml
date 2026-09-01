@@ -422,14 +422,37 @@ jobs:
 
             cd "$GITHUB_WORKSPACE/Maestro"
 
+            # Temporarily disable "exit on error" so that if pytest fails
+            # (test failure OR collection/setup crash), the script keeps
+            # going long enough to print diagnostics below instead of
+            # dying silently with just a generic "exit code 1" from the
+            # android-emulator-runner wrapper.
+            set +e
             pytest -v -s \
               pytest/test_mobile.py \
               --alluredir="$GITHUB_WORKSPACE/.allure/maestro-results"
+            PYTEST_EXIT_CODE=$?
+            set -e
+
+            echo "========================================"
+            echo "PYTEST EXIT CODE: $PYTEST_EXIT_CODE"
+            echo "========================================"
 
             echo "========================================"
             echo "MAESTRO ALLURE RESULTS (inside emulator step)"
             echo "========================================"
             find "$GITHUB_WORKSPACE/.allure/maestro-results" -type f -print || true
+
+            COUNT_INSIDE=$(find "$GITHUB_WORKSPACE/.allure/maestro-results" -type f | wc -l)
+            echo "Result files written: $COUNT_INSIDE"
+
+            if [ "$COUNT_INSIDE" -eq 0 ]; then
+              echo "::warning::pytest wrote ZERO allure result files. This means pytest failed during collection/setup, before running any test - check the pytest output above (scroll up) for the real traceback, not just the exit code."
+            fi
+
+            # Preserve the real exit code so the step still correctly
+            # reports pass/fail, instead of masking it as success.
+            exit $PYTEST_EXIT_CODE
 
       # ============================================================
       # DEBUG: VERIFY MAESTRO RESULTS EXIST BEFORE UPLOAD
