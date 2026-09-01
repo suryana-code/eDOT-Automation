@@ -255,6 +255,14 @@ jobs:
           ls -la /dev/kvm
 
       # ============================================================
+      # PREPARE MAESTRO ALLURE DIRECTORY
+      # Dibuat di luar emulator agar selalu ada meski script emulator gagal
+      # ============================================================
+
+      - name: Prepare Maestro Allure directory
+        run: mkdir -p "$GITHUB_WORKSPACE/.allure/maestro-results"
+
+      # ============================================================
       # START EMULATOR + MAESTRO
       # ============================================================
 
@@ -283,7 +291,8 @@ jobs:
             -no-snapshot-save
 
           script: |
-            set -e
+            # set -e dihapus agar script tidak abort sebelum pytest sempat jalan.
+            # Error handling dilakukan secara eksplisit per section kritis.
 
             echo "========================================"
             echo "ANDROID ENVIRONMENT"
@@ -363,7 +372,7 @@ jobs:
             echo "VERIFY PACKAGE"
             echo "========================================"
 
-            adb shell pm path "$APP_ID"
+            adb shell pm path "$APP_ID" || echo "WARNING: package not fully verified, continuing anyway"
 
 
             # ========================================================
@@ -420,6 +429,55 @@ jobs:
             cd "$GITHUB_WORKSPACE/Maestro"
             pytest -v -s pytest/test_mobile.py \
               --alluredir="$GITHUB_WORKSPACE/.allure/maestro-results"
+
+      # ============================================================
+      # FALLBACK ALLURE RESULT
+      # Jika emulator script gagal sebelum pytest jalan, buat synthetic result
+      # agar artifact maestro-allure-results selalu ter-upload dan Pages
+      # tetap menampilkan suite Maestro di combined report.
+      # ============================================================
+
+      - name: Create fallback Allure result if no Maestro results
+        if: always()
+        run: |
+          RESULTS_DIR="$GITHUB_WORKSPACE/.allure/maestro-results"
+          mkdir -p "$RESULTS_DIR"
+
+          # Cek apakah ada result file (file JSON dari pytest-allure)
+          if find "$RESULTS_DIR" -name '*-result.json' -print -quit 2>/dev/null | grep -q .; then
+            echo "Maestro allure results found. No fallback needed."
+          else
+            echo "No Maestro results found. Creating fallback broken result."
+
+            UUID=$(python3 -c "import uuid; print(uuid.uuid4())")
+            NOW=$(python3 -c "import time; print(int(time.time() * 1000))")
+
+            cat > "$RESULTS_DIR/${UUID}-result.json" << EOF
+{
+  "uuid": "${UUID}",
+  "name": "Maestro Mobile Suite",
+  "fullName": "Maestro.MobileSuite",
+  "status": "broken",
+  "statusDetails": {
+    "message": "Maestro did not produce test results. Emulator setup or test execution failed before pytest could run.",
+    "trace": "Check the 'Start emulator and run Maestro' step logs and Maestro debug artifacts for details."
+  },
+  "stage": "finished",
+  "start": ${NOW},
+  "stop": ${NOW},
+  "labels": [
+    {"name": "parentSuite", "value": "Maestro"},
+    {"name": "suite",       "value": "Mobile Automation"},
+    {"name": "story",       "value": "Mobile Automation - eWork SFA"}
+  ],
+  "links": [],
+  "steps": [],
+  "attachments": [],
+  "parameters": []
+}
+EOF
+            echo "Fallback result created: $RESULTS_DIR/${UUID}-result.json"
+          fi
 
       # ============================================================
       # MAESTRO DEBUG FILES
