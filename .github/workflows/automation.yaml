@@ -344,13 +344,18 @@ jobs:
             echo "VERIFY APK"
             echo "========================================"
 
-            APK_DIR="$GITHUB_WORKSPACE/.ci/edot-apk"
+            # NOTE: reactivecircus/android-emulator-runner executes each
+            # line of this script as its own separate `/usr/bin/sh -c`
+            # process, so a shell variable assigned on one line (like
+            # APK_DIR used to be) is NOT visible on the next line. Every
+            # command below uses the full literal path instead of an
+            # intermediate variable.
 
-            test -f "$APK_DIR/base.apk"
-            test -f "$APK_DIR/split_config.arm64_v8a.apk"
-            test -f "$APK_DIR/split_config.xxhdpi.apk"
+            test -f "$GITHUB_WORKSPACE/.ci/edot-apk/base.apk"
+            test -f "$GITHUB_WORKSPACE/.ci/edot-apk/split_config.arm64_v8a.apk"
+            test -f "$GITHUB_WORKSPACE/.ci/edot-apk/split_config.xxhdpi.apk"
 
-            ls -lh "$APK_DIR"
+            ls -lh "$GITHUB_WORKSPACE/.ci/edot-apk"
 
 
             # ========================================================
@@ -362,9 +367,9 @@ jobs:
             echo "========================================"
 
             adb install-multiple -r \
-              "$APK_DIR/base.apk" \
-              "$APK_DIR/split_config.arm64_v8a.apk" \
-              "$APK_DIR/split_config.xxhdpi.apk"
+              "$GITHUB_WORKSPACE/.ci/edot-apk/base.apk" \
+              "$GITHUB_WORKSPACE/.ci/edot-apk/split_config.arm64_v8a.apk" \
+              "$GITHUB_WORKSPACE/.ci/edot-apk/split_config.xxhdpi.apk"
 
             echo "Application installed successfully"
 
@@ -422,21 +427,21 @@ jobs:
 
             cd "$GITHUB_WORKSPACE/Maestro"
 
-            # Temporarily disable "exit on error" so that if pytest fails
-            # (test failure OR collection/setup crash), the script keeps
-            # going long enough to print diagnostics below instead of
-            # dying silently with just a generic "exit code 1" from the
-            # android-emulator-runner wrapper.
-            set +e
+            # IMPORTANT: everything from `pytest` down to the final `||`
+            # fallback must stay as ONE backslash-continued command. This
+            # action runs each separate script line as its own isolated
+            # process and aborts the whole script the instant any line
+            # returns non-zero - so if pytest itself is written as a
+            # standalone line and it fails (e.g. one test assertion
+            # fails, which is normal), the script would die right there
+            # and none of the diagnostics below would ever print. Piping
+            # the failure into `|| echo ...` on the SAME continued line
+            # makes the overall command's exit status 0, so execution
+            # continues to the diagnostics regardless of test outcome.
             pytest -v -s \
               pytest/test_mobile.py \
-              --alluredir="$GITHUB_WORKSPACE/.allure/maestro-results"
-            PYTEST_EXIT_CODE=$?
-            set -e
-
-            echo "========================================"
-            echo "PYTEST EXIT CODE: $PYTEST_EXIT_CODE"
-            echo "========================================"
+              --alluredir="$GITHUB_WORKSPACE/.allure/maestro-results" \
+              || echo "::warning::pytest exited non-zero - scroll up to the pytest output directly above this line for the real error/traceback"
 
             echo "========================================"
             echo "MAESTRO ALLURE RESULTS (inside emulator step)"
@@ -447,12 +452,8 @@ jobs:
             echo "Result files written: $COUNT_INSIDE"
 
             if [ "$COUNT_INSIDE" -eq 0 ]; then
-              echo "::warning::pytest wrote ZERO allure result files. This means pytest failed during collection/setup, before running any test - check the pytest output above (scroll up) for the real traceback, not just the exit code."
+              echo "::warning::pytest wrote ZERO allure result files. Scroll up to the actual pytest output (above the 'RUN MAESTRO TEST' banner is wrong - look right below it) to see if this was a collection error, import error, wrong test path, or missing allure-pytest plugin."
             fi
-
-            # Preserve the real exit code so the step still correctly
-            # reports pass/fail, instead of masking it as success.
-            exit $PYTEST_EXIT_CODE
 
       # ============================================================
       # DEBUG: VERIFY MAESTRO RESULTS EXIST BEFORE UPLOAD
