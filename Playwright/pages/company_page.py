@@ -237,6 +237,15 @@ class CompanyPage(BasePage):
             "Choose Postal Code"
         )
 
+        self.ddl_detail_postal_code = page.get_by_text(
+            "Postal Code",
+            exact=False
+        ).locator(
+            ".."
+        ).get_by_role(
+            "combobox"
+        )
+
         # =====================================================
         # MENGHAPUS COMPANY
         # =====================================================
@@ -857,10 +866,16 @@ class CompanyPage(BasePage):
             data["phone"]
         )
 
-        self.expect_value(
-            self.txt_detail_postal_code,
-            data["postal_code"]
-        )
+        try:
+            self.expect_text(
+                self.ddl_detail_postal_code,
+                data["postal_code"]
+            )
+        except Exception:
+            self.expect_value(
+                self.txt_detail_postal_code,
+                data["postal_code"]
+            )
 
         print(
             "✓ Company detail verified"
