@@ -518,7 +518,7 @@ jobs:
       # ============================================================
 
       - name: Download Playwright results
-        if: always()
+        if: always() && needs.playwright.result != 'skipped'
         uses: actions/download-artifact@v4
         with:
           name: playwright-allure-results
@@ -530,7 +530,7 @@ jobs:
       # ============================================================
 
       - name: Download Maestro results
-        if: always()
+        if: always() && needs.maestro.result != 'skipped'
         uses: actions/download-artifact@v4
         with:
           name: maestro-allure-results
