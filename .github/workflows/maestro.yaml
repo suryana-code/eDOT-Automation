@@ -1,10 +1,6 @@
 name: Maestro Automation
 
 on:
-  push:
-    branches:
-      - main
-
   workflow_dispatch:
 
 permissions:
