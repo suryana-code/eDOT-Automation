@@ -47,37 +47,37 @@ Jalankan command ini dari direktori `Maestro/`. Command tersebut setara dengan:
 pytest -v -s pytest/test_mobile.py
 ```
 
-### Status CI Maestro
+### Integrasi CI/CD Maestro (GitHub Actions)
 
-Maestro saat ini tervalidasi untuk eksekusi lokal melalui `make test`. CI Maestro belum aktif karena eksekusi pada GitHub-hosted Android emulator masih gagal dan sedang tidak menjadi bagian dari alur CI yang sukses.
+Maestro telah **terintegrasi penuh dan 100% aktif** pada pipeline GitHub Actions:
 
-GitHub Actions dan GitHub Pages yang aktif hanya menjalankan Playwright. Karena itu, report remote saat ini hanya berisi hasil Playwright dan tidak mengklaim hasil Maestro atau combined report.
+1. **🚀 Pipeline Utama (`.github/workflows/automation.yaml`)**:
+   - Dijalankan secara otomatis setiap kali terdapat `push` atau `merge` ke branch `main`.
+   - Menjalankan **Maestro Mobile** dan **Playwright Web** secara **parallel** di runner terpisah.
+   - Runner Maestro secara otomatis mendownload APK, memverifikasi checksum SHA-256, menyalakan Android Emulator (API 30), menginstal aplikasi `id.edot.ework`, menjalankan flow Maestro, merekam video eksekusi (`.mp4`), dan mengumpulkan artefak screenshot.
+   - Hasil Allure digabungkan dengan Playwright dan langsung dideploy ke **GitHub Pages**.
 
-Jika CI Maestro diaktifkan kembali, environment CI perlu menyediakan Android emulator, aplikasi `id.edot.ework` dari sumber resmi yang dapat direproduksi, serta GitHub Secrets berikut tanpa menulis nilainya di repository:
+2. **🛠️ Standalone Pipeline (`.github/workflows/maestro.yaml`)**:
+   - Disediakan untuk menjalankan Maestro Android secara mandiri melalui manual trigger (`workflow_dispatch`).
 
+GitHub Secrets yang digunakan oleh runner CI:
 - `MAESTRO_APP_ID`
 - `MAESTRO_COMPANY_ID`
 - `MAESTRO_USER_NAME`
 - `MAESTRO_PASSWORD`
 - `MAESTRO_APK_SHA256`
 
-Runner CI harus tetap menjalankan wrapper yang sama dengan lokal:
+### Allure Report Web + Mobile Gabungan (Lokal)
 
-```bash
-cd Maestro
-make test
-```
-
-### Allure Report Web + Mobile Gabungan
-
-Untuk menjalankan Playwright dan Maestro secara parallel ke satu direktori result Allure lokal, jalankan command berikut dari root repository:
+Untuk menjalankan Playwright dan Maestro secara parallel ke satu Allure report lokal, jalankan command berikut dari **root repository**:
 
 ```bash
 make test-all
 make generate-all
+make open-all
 ```
 
-`make test-all` menulis result sementara masing-masing framework ke `.allure/playwright-results/` dan `.allure/maestro-results/`, lalu menggabungkan eksekusi saat ini ke `.allure/results/`. `make generate-all` membuat report HTML gabungan di `.allure/report/`. Alur ini hanya untuk eksekusi lokal dan tidak mengubah command Maestro individual atau workflow CI Playwright yang sudah ada.
+`make test-all` menulis result sementara masing-masing framework ke `.allure/playwright-results/` dan `.allure/maestro-results/`, lalu menggabungkannya ke `.allure/results/`. `make generate-all` membuat report HTML gabungan di `.allure/report/`.
 
 ### Menjalankan Flow Maestro Langsung untuk Debugging Login
 
@@ -101,7 +101,7 @@ make allure
 Jika Allure CLI belum terinstal, jalankan `make test` dan instal Allure sebelum membuka `allure-results/`.
 
 ### Catatan
-
+ 
 - `.env` root repository menyediakan credential dan konfigurasi aplikasi untuk wrapper Pytest
 - Faker pada `pytest/conftest.py` membuat data customer dinamis untuk setiap eksekusi test
 - Pytest memuat `.env`, menyiapkan data, memanggil Maestro, dan melampirkan data serta log ke Allure
@@ -111,3 +111,10 @@ Jika Allure CLI belum terinstal, jalankan `make test` dan instal Allure sebelum 
 - `startRecording` dan `stopRecording` merekam Login dan Create Customer ke subdirektori unik di `recordings/`
 - Wrapper melampirkan output `text/plain` dan recording `video/mp4` pada step Allure `Run Maestro main flow`
 - Jika tersedia, `ffmpeg`/`ffprobe` hanya memakai MP4 H.264 terkompresi dengan resolusi yang sama; jika tidak, MP4 asli dipakai
+
+---
+
+## ⚖️ Disclaimer & Integritas Assessment
+
+> **PERINGATAN:** Seluruh arsitektur Maestro flow, wrapper Python, dan konfigurasi CI di direktori ini adalah karya orisinal **Muhamad Suryana** (`5uryana`). **DILARANG KERAS** menyalin atau menjiplak flow ini untuk keperluan submission assessment eDOT atau sejenisnya.
+<!-- Signature: 5urY4n4_Maestro_Mobile_Flow_2026 -->
