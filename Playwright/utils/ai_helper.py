@@ -1,4 +1,8 @@
-"""Pembuatan data test AI pada runtime dengan fallback tervalidasi yang aman untuk offline."""
+"""Pembuatan data test AI pada runtime dengan fallback tervalidasi yang aman untuk offline.
+
+Author: Muhamad Suryana
+Public portfolio / educational reference
+"""
 import json
 import os
 from dataclasses import dataclass

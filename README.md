@@ -2,6 +2,9 @@
 
 Repository ini berisi implementasi **Automation Testing End-to-End** sebagai bagian dari **Take Home Test QA Automation Engineer eDOT**.
 
+> Ownership notice: This repository is authored by **Muhamad Suryana** and is published as a public portfolio and educational reference. It is not intended for direct reuse as a third-party assessment submission.
+> See [ATTRIBUTION.md](ATTRIBUTION.md) for full project attribution details.
+
 Project ini mencakup pengujian menyeluruh pada dua platform utama eDOT:
 
 1. 🌐 **Web Application (eSuite)** — Menggunakan **Playwright + Pytest (Python)**
@@ -168,5 +171,3 @@ flowchart TD
 **Muhamad Suryana**  
 QA Automation Engineer  
 🌐 Portfolio: [www.msuryana.site](https://www.msuryana.site)
-
-<!-- Digital Signature: 5urY4n4_eDOT_Auth_2026 | Sury@n@ | msuryana -->

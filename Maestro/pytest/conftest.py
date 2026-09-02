@@ -1,3 +1,6 @@
+# Author: Muhamad Suryana
+# Public portfolio / educational reference
+# This file is part of the original eDOT automation project.
 
 from pathlib import Path
 

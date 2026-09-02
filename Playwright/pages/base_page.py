@@ -1,3 +1,7 @@
+# Author: Muhamad Suryana
+# Public portfolio / educational reference
+# This file is part of the original eDOT automation project.
+
 from playwright.sync_api import Page, expect
 
 

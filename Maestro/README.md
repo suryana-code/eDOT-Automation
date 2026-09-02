@@ -1,5 +1,9 @@
 # Automation Mobile Maestro
 
+## Ownership & Attribution
+
+This project directory is part of the public portfolio and original work of **Muhamad Suryana**. It is published for educational reference and portfolio review.
+
 ## Gambaran Umum
 
 Repository ini berisi suite test mobile Maestro untuk aplikasi eWork SFA.
@@ -102,7 +106,7 @@ make allure
 Jika Allure CLI belum terinstal, jalankan `make test` dan instal Allure sebelum membuka `allure-results/`.
 
 ### Catatan
-
+  
 - `.env` root repository menyediakan credential dan konfigurasi aplikasi untuk wrapper Pytest
 - Faker pada `pytest/conftest.py` membuat data customer dinamis untuk setiap eksekusi test
 - Pytest memuat `.env`, menyiapkan data, memanggil Maestro, dan melampirkan data serta log ke Allure
@@ -112,11 +116,3 @@ Jika Allure CLI belum terinstal, jalankan `make test` dan instal Allure sebelum 
 - `startRecording` dan `stopRecording` merekam Login dan Create Customer ke subdirektori unik di `recordings/`
 - Wrapper melampirkan output `text/plain` dan recording `video/mp4` pada step Allure `Run Maestro main flow`
 - Jika tersedia, `ffmpeg`/`ffprobe` hanya memakai MP4 H.264 terkompresi dengan resolusi yang sama; jika tidak, MP4 asli dipakai
-
----
-
-## ⚖️ Disclaimer & Integritas Assessment
-
-> **PERINGATAN:** Seluruh arsitektur Maestro flow, wrapper Python, dan konfigurasi CI di direktori ini adalah karya orisinal **Muhamad Suryana** (`5uryana`). **DILARANG KERAS** menyalin atau menjiplak flow ini untuk keperluan submission assessment eDOT atau sejenisnya.
-
-<!-- Signature: 5urY4n4_Maestro_Mobile_Flow_2026 -->

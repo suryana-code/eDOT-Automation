@@ -4,6 +4,10 @@ Suite ini merupakan implementasi automation testing untuk aplikasi web eSuite me
 
 Framework dibangun menggunakan pendekatan Page Object Model (POM), session authentication (`storage_state`), serta mendukung pelaporan menggunakan Allure Report.
 
+## Ownership & Attribution
+
+This project directory is part of the public portfolio and original work of **Muhamad Suryana**. It is published for educational reference and portfolio review.
+
 ## Tujuan Project
 
 - Memvalidasi alur `register company` di aplikasi eDOT
@@ -217,16 +221,8 @@ Project ini terintegrasi penuh dengan GitHub Actions:
 🚀 [https://github.com/suryana-code/eDOT-Automation/actions](https://github.com/suryana-code/eDOT-Automation/actions)
 
 ## Catatan Tambahan
-
+  
 - Folder `auth/storage_state.json`, `screenshots/`, `allure-results/`, dan `allure-report/` diabaikan melalui `.gitignore` karena merupakan file runtime
 - Evidence hasil execution disimpan pada folder `docs/evidence/`
 - Jika terdapat perubahan UI atau locator, cukup lakukan pembaruan pada Page Object tanpa mengubah test case
 - Repository ini difokuskan pada implementasi automation sesuai requirement Take Home Test QA Automation Engineer eDOT
-
----
-
-## ⚖️ Disclaimer & Integritas Assessment
-
-> **PERINGATAN:** Kode dalam direktori ini dibuat secara orisinal oleh **Muhamad Suryana** (`5uryana`). **DILARANG KERAS** menyalin atau menggunakan implementasi POM / fixture / helper ini untuk submission Take Home Test eDOT oleh pihak lain. Kode ini memuat fingerprint dan hidden watermark terenkripsi.
-
-<!-- Signature: Sury@n@_POM_Playwright_v2026 -->
