@@ -64,6 +64,7 @@ generate-all:
 	@echo "Generating combined Allure report..."
 	@rm -rf "$(ALLURE_REPORT)"
 	@allure generate "$(ALLURE_RESULTS)" --clean -o "$(ALLURE_REPORT)"
+	@python3 scripts/add_owner_footer.py "$(ALLURE_REPORT)"
 
 # Membuka report Allure yang sudah dibuat
 open-all:

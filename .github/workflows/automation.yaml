@@ -660,6 +660,7 @@ jobs:
       - name: Generate combined Allure report
         if: always()
         run: |
+
           echo "========================================"
           echo "GENERATE ALLURE REPORT"
           echo "========================================"
@@ -669,9 +670,10 @@ jobs:
             --clean \
             -o .allure/report
 
+          python3 scripts/add_owner_footer.py .allure/report
+
       # ============================================================
-      # UPLOAD COMBINED RESULTS
-      # ============================================================
+      # UPLOAD COMBINED RESULTS      # ============================================================
 
       - name: Upload combined Allure results
         if: always()
